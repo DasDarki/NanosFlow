@@ -12,12 +12,30 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "path": {
+        "all": true
+      },
+      "fs": {
+        "all": false,
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "copyFile": true,
+        "renameFile": true,
+        "exists": true,
+        "scope": [
+          "$APPDATA/", "$APPDATA/config.json", "$APPDATA/projects", "$APPDATA/projects/*.json"
+        ]
+      }
     },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "NanosFlow (c) 2023 github.com/DasDarki",
       "deb": {
         "depends": []
       },
@@ -29,7 +47,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "nanos-flow",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

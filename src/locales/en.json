@@ -1,0 +1,12 @@
+{
+  "nav.file": "File",
+  "nav.file.new": "New",
+  "nav.file.new.project": "New Project",
+  "nav.file.new.script": "New Script",
+  "nav.file.new.script_folder": "New Folder",
+  "nav.file.open": "Open",
+  "nav.file.open_recent": "Open Recent",
+  "nav.file.save": "Save",
+  "nav.file.settings": "Settings",
+  "nav.file.exit": "Exit"
+}

@@ -1,0 +1,9 @@
+@import "variables";
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: $background-color;
+  color: $foreground-color;
+  font-family: sans-serif;
+}

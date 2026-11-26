@@ -1,0 +1,66 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.menu {
+  position: fixed;
+  min-width: 200px;
+  padding: 5px;
+  border-radius: var(--radius);
+  background: rgba(22, 22, 32, 0.98);
+  box-shadow: var(--shadow-pop);
+  outline: none;
+  animation: appear 100ms var(--ease);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 9px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text);
+}
+
+.item[data-highlighted="true"] {
+  background: var(--accent-soft);
+}
+
+.item[data-danger="true"] {
+  color: var(--danger);
+}
+
+.item[data-danger="true"][data-highlighted="true"] {
+  background: var(--danger-soft);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  color: var(--text-muted);
+}
+
+.item[data-danger="true"] .icon {
+  color: var(--danger);
+}
+
+.separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}

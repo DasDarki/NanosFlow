@@ -1,0 +1,132 @@
+.docs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  user-select: text;
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--kind) 60%, white);
+}
+
+.kind span {
+  margin-left: auto;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-faint);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.subtitle {
+  margin-top: -6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.side {
+  align-self: flex-start;
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.side[data-available="false"] {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.description {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.pin {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pinHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pin);
+  flex-shrink: 0;
+}
+
+.pinName {
+  font-weight: 550;
+}
+
+.pinType {
+  font-size: 11px;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optional {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40%;
+}
+
+.pinDescription {
+  padding-left: 14px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.id {
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  word-break: break-all;
+}

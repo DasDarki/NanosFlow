@@ -1,0 +1,262 @@
+.shell {
+  position: relative;
+  display: grid;
+  grid-template-rows: 44px 1fr 26px;
+  height: 100%;
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 14px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+}
+
+.projectName {
+  font-weight: 650;
+}
+
+.channel {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 0;
+}
+
+.sidebar {
+  overflow-y: auto;
+  padding: 14px 10px;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+}
+
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.revision {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.canvas {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--bg);
+}
+
+.placeholder {
+  place-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  padding: 28px 32px;
+  text-align: center;
+  border-radius: var(--radius-large);
+  background: rgba(17, 17, 26, 0.85);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.placeholder h2 {
+  font-size: 17px;
+  color: var(--text);
+}
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  font-size: 12px;
+  color: var(--text-faint);
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+}
+
+.statusbar code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buildStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.buildStatus[data-tone="success"] {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.buildStatus[data-tone="warning"] {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.buildStatus[data-tone="error"] {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.buildStatus:hover {
+  filter: brightness(1.15);
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  min-width: 220px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.searchButton:hover {
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+
+.searchButton kbd {
+  margin-left: auto;
+  font-size: 10.5px;
+}
+
+.runtimeButton {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.runtimeButton:hover,
+.runtimeButton[data-active="true"] {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.runtimeCount {
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--danger);
+  color: #1a0d0d;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.serverDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  opacity: 0.5;
+}
+
+.serverDot[data-state="running"] {
+  background: var(--success);
+  opacity: 1;
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+
+.serverDot[data-state="busy"] {
+  background: var(--warning);
+  opacity: 1;
+}
+
+.playGroup {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.playButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: #1f9d5c;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.playButton:hover:not(:disabled) {
+  background: #24b569;
+}
+
+.playButton:disabled {
+  opacity: 0.55;
+}
+
+.stopButton {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-small);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.stopButton:hover {
+  background: var(--danger);
+  color: #1a0d0d;
+}
+
+.spin {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

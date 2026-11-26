@@ -1,0 +1,28 @@
+.cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  transform-origin: 0 0;
+  transition: transform 90ms linear;
+}
+
+.cursor svg path {
+  fill: var(--peer);
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 1.2;
+}
+
+.name {
+  position: absolute;
+  top: 16px;
+  left: 12px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--peer);
+  color: #0b0b12;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}

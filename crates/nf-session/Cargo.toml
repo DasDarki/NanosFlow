@@ -1,0 +1,23 @@
+[package]
+name = "nf-session"
+description = "Hosts and joins NanosFlow sessions through a relay and tunnels the test server to guests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+bytes.workspace = true
+nf-relay.workspace = true
+nf-tunnel.workspace = true
+notify = "8"
+quinn.workspace = true
+ring = "0.17"
+rustls.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["signal", "io-std"] }
+webpki-roots = "1"
+
+[dev-dependencies]
+tempfile.workspace = true

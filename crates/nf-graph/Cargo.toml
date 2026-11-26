@@ -1,0 +1,17 @@
+[package]
+name = "nf-graph"
+description = "Node catalog, type system and graph analysis for NanosFlow"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+nf-api.workspace = true
+nf-project.workspace = true
+serde.workspace = true
+toml.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+

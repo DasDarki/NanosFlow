@@ -1,0 +1,10 @@
+[package]
+name = "nf-tunnel"
+description = "Forwards game server traffic (UDP and TCP on one port) between players and a hosted test server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+tokio = { workspace = true, features = ["signal"] }

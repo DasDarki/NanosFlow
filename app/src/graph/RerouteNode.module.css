@@ -1,0 +1,26 @@
+.knot {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #0b0b12;
+}
+
+.knot[data-exec="true"] {
+  border-radius: 3px;
+}
+
+.knot[data-selected="true"] {
+  box-shadow:
+    0 0 0 2px #0b0b12,
+    0 0 0 4px var(--accent);
+}
+
+.handle {
+  width: 10px !important;
+  height: 14px !important;
+  min-width: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}

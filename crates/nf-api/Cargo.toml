@@ -1,0 +1,13 @@
+[package]
+name = "nf-api"
+description = "Typed model of the nanos world scripting API"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+include_dir = "0.7"

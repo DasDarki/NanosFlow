@@ -1,0 +1,14 @@
+[package]
+name = "nf-server"
+description = "Installs, configures and drives a local nanos world test server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+nf-project.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

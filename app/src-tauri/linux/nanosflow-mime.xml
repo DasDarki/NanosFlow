@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-nanosflow-project">
+    <comment>NanosFlow Project</comment>
+    <sub-class-of type="application/toml"/>
+    <generic-icon name="nanosflow"/>
+    <glob pattern="*.nfproj"/>
+  </mime-type>
+</mime-info>

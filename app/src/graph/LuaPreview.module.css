@@ -1,0 +1,206 @@
+.preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px 0 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.file {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.copy:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.copy:disabled {
+  opacity: 0.5;
+}
+
+.notice {
+  margin: 10px 12px 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-small);
+  background: var(--danger-soft);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.problems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px 0;
+}
+
+.problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.problem:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.problem:disabled {
+  cursor: default;
+}
+
+.problem > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.problem[data-severity="error"] > svg {
+  color: var(--danger);
+}
+
+.problem[data-severity="warning"] > svg {
+  color: var(--warning);
+}
+
+.problem em {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  color: var(--text-faint);
+}
+
+.code {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 0 16px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  tab-size: 4;
+  color: var(--text);
+  user-select: text;
+}
+
+.line {
+  display: flex;
+  min-width: max-content;
+}
+
+.line:hover {
+  background: var(--surface-2);
+}
+
+.number {
+  position: sticky;
+  left: 0;
+  flex-shrink: 0;
+  width: 40px;
+  padding-right: 12px;
+  text-align: right;
+  color: var(--text-faint);
+  background: var(--surface-1);
+  user-select: none;
+}
+
+.text {
+  white-space: pre;
+  padding-right: 16px;
+}
+
+.text [data-token="keyword"] {
+  color: #c792ea;
+}
+
+.text [data-token="string"] {
+  color: #a5e075;
+}
+
+.text [data-token="number"] {
+  color: #f6a96b;
+}
+
+.text [data-token="constant"] {
+  color: #ff9cac;
+}
+
+.text [data-token="call"] {
+  color: #82aaff;
+}
+
+.text [data-token="comment"] {
+  color: var(--text-faint);
+}
+
+.message {
+  display: flex;
+  gap: 10px;
+  margin: 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.message[data-severity="error"] > svg {
+  flex-shrink: 0;
+  color: var(--danger);
+}
+
+.message strong {
+  color: var(--text);
+}
+
+.empty {
+  margin: 16px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}

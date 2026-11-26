@@ -1,0 +1,141 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.add:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.hint {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-faint);
+}
+
+.variable {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.variable[data-invalid="true"] {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grip {
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 5px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  font-size: 12.5px;
+  outline: none;
+  user-select: text;
+}
+
+.name:focus {
+  border-color: var(--accent);
+}
+
+.place {
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 5px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
+}
+
+.place:hover {
+  color: var(--text);
+  border-color: #2f7f8f;
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-faint);
+}
+
+.remove:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.defaultRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.sync {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.sync input {
+  margin: 0;
+  accent-color: var(--accent);
+}

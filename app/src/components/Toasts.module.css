@@ -1,0 +1,98 @@
+.host {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 40px));
+}
+
+.toast {
+  display: flex;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-pop);
+  border-left: 3px solid var(--tone);
+  animation: slide 220ms var(--ease);
+  user-select: text;
+}
+
+.toast[data-kind="error"] {
+  --tone: var(--danger);
+}
+
+.toast[data-kind="warning"] {
+  --tone: var(--warning);
+}
+
+.toast[data-kind="info"] {
+  --tone: var(--accent);
+}
+
+.toast[data-kind="success"] {
+  --tone: var(--success);
+}
+
+.icon {
+  color: var(--tone);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.message {
+  color: var(--text-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.issues {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.actions {
+  display: flex;
+  margin-top: 6px;
+}
+
+.close {
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-faint);
+}
+
+.close:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}

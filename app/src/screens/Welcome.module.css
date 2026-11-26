@@ -1,0 +1,267 @@
+.screen {
+  display: grid;
+  grid-template-columns: minmax(360px, 440px) 1fr;
+  height: 100%;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 36px 28px;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -40% -60% auto -40%;
+  height: 70%;
+  background: radial-gradient(closest-side, rgba(90, 100, 255, 0.22), transparent);
+  pointer-events: none;
+}
+
+.logo {
+  position: relative;
+  width: 100%;
+  max-width: 330px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  margin: 8px auto 12px;
+  mask-image: radial-gradient(ellipse 62% 62% at center, black 55%, transparent 100%);
+}
+
+.brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.name {
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.actions button {
+  justify-content: flex-start;
+}
+
+.shortcut {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.dropHint {
+  margin-top: 14px;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.footer {
+  position: relative;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.recent {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 40px 40px 24px;
+}
+
+.recentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.recentHeader h2 {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.search {
+  width: 260px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 12px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  transition: background 100ms var(--ease);
+}
+
+.item:hover,
+.item:focus-within {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.itemMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: white;
+  background: var(--accent-gradient);
+}
+
+.item[data-missing="true"] .avatar {
+  background: var(--surface-3);
+  color: var(--text-faint);
+}
+
+.itemText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemName {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.missing {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--warning-soft);
+  padding: 1px 7px;
+  border-radius: 99px;
+}
+
+.itemPath {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.itemTime {
+  color: var(--text-faint);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.itemActions {
+  display: flex;
+  justify-content: flex-end;
+  width: 60px;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 100ms var(--ease);
+}
+
+.item:hover .itemActions,
+.item:focus-within .itemActions {
+  opacity: 1;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-large);
+  padding: 40px;
+}
+
+.empty h3 {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.empty p {
+  max-width: 360px;
+}
+
+.emptyIcon {
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+
+.sessionDot {
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.sessionDot[data-state="live"] {
+  background: var(--success);
+}

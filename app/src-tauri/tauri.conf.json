@@ -1,0 +1,84 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "NanosFlow",
+  "identifier": "dev.dasdarki.nanosflow",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "NanosFlow",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 600,
+        "center": true,
+        "backgroundColor": "#0b0b12"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis",
+      "msi",
+      "deb",
+      "rpm",
+      "appimage"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/64x64.png",
+      "icons/128x128.png",
+      "icons/256x256.png",
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "nfproj"
+        ],
+        "name": "NanosFlow Project",
+        "description": "NanosFlow Project",
+        "role": "Editor",
+        "mimeType": "application/x-nanosflow-project"
+      }
+    ],
+    "category": "DeveloperTool",
+    "linux": {
+      "deb": {
+        "desktopTemplate": "linux/nanosflow.desktop",
+        "files": {
+          "/usr/share/mime/packages/nanosflow.xml": "linux/nanosflow-mime.xml"
+        }
+      },
+      "rpm": {
+        "desktopTemplate": "linux/nanosflow.desktop",
+        "files": {
+          "/usr/share/mime/packages/nanosflow.xml": "linux/nanosflow-mime.xml"
+        }
+      }
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQyODFFRTlGNEVCRERBMzMKUldRejJyMU9uKzZCMHMzZzVwNU8raDlaNFRxRkgxVlRQRzlrUkNNak93TjFMeTFmRnhVelEvdjQK",
+      "endpoints": [
+        "https://github.com/DasDarki/NanosFlow/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

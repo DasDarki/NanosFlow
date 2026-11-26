@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name={{name}}
+Comment=Visual scripting for nanos world
+Exec={{exec}} %f
+Icon={{icon}}
+Terminal=false
+Categories={{categories}}
+MimeType=application/x-nanosflow-project;
+StartupWMClass=NanosFlow

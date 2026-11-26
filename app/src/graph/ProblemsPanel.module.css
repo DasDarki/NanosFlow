@@ -1,0 +1,103 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  background: var(--surface-1);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.header:hover {
+  background: var(--surface-2);
+}
+
+.heading {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.clean,
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.clean {
+  color: var(--success);
+}
+
+.count[data-severity="error"] {
+  color: var(--danger);
+}
+
+.count[data-severity="warning"] {
+  color: var(--warning);
+}
+
+.toggle {
+  margin-left: auto;
+  display: grid;
+}
+
+.list {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  text-align: left;
+}
+
+button.item:hover {
+  background: var(--surface-2);
+}
+
+.item > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.item[data-severity="error"] > svg {
+  color: var(--danger);
+}
+
+.item[data-severity="warning"] > svg {
+  color: var(--warning);
+}
+
+.message {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.hint {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.empty {
+  padding: 10px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}

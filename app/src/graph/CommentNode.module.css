@@ -1,0 +1,123 @@
+.comment {
+  --tint: 148, 163, 184;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: rgba(var(--tint), 0.07);
+  border: 1px solid rgba(var(--tint), 0.28);
+  pointer-events: none;
+}
+
+.comment[data-color="blue"] {
+  --tint: 96, 165, 250;
+}
+
+.comment[data-color="green"] {
+  --tint: 52, 211, 153;
+}
+
+.comment[data-color="amber"] {
+  --tint: 251, 191, 36;
+}
+
+.comment[data-color="red"] {
+  --tint: 248, 113, 113;
+}
+
+.comment[data-color="violet"] {
+  --tint: 192, 132, 252;
+}
+
+.comment[data-selected="true"] {
+  border-color: rgba(var(--tint), 0.7);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 9px 9px 0 0;
+  background: rgba(var(--tint), 0.18);
+  color: rgb(var(--tint));
+  font-size: 15px;
+  font-weight: 650;
+  cursor: grab;
+  pointer-events: all;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 1px solid rgba(var(--tint), 0.6);
+  border-radius: 5px;
+  background: var(--surface-1);
+  color: var(--text);
+  font: inherit;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.colors {
+  display: flex;
+  gap: 5px;
+  cursor: default;
+}
+
+.swatch {
+  --tint: 148, 163, 184;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: rgb(var(--tint));
+}
+
+.swatch[data-color="blue"] {
+  --tint: 96, 165, 250;
+}
+
+.swatch[data-color="green"] {
+  --tint: 52, 211, 153;
+}
+
+.swatch[data-color="amber"] {
+  --tint: 251, 191, 36;
+}
+
+.swatch[data-color="red"] {
+  --tint: 248, 113, 113;
+}
+
+.swatch[data-color="violet"] {
+  --tint: 192, 132, 252;
+}
+
+.swatch[aria-pressed="true"] {
+  border-color: var(--text);
+}
+
+.resizeLine {
+  pointer-events: all;
+}
+
+.resizeHandle {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  pointer-events: all;
+}

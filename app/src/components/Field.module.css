@@ -1,0 +1,121 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.optional {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-radius: var(--radius-small);
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  transition:
+    border-color 120ms var(--ease),
+    box-shadow 120ms var(--ease);
+}
+
+.control:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.control[data-state="error"] {
+  border-color: rgba(248, 113, 113, 0.7);
+}
+
+.control[data-state="error"]:focus-within {
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+.control[data-state="warning"] {
+  border-color: rgba(251, 191, 36, 0.55);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  outline: none;
+  user-select: text;
+}
+
+.input::placeholder {
+  color: var(--text-faint);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.adornment {
+  display: flex;
+  align-items: center;
+  padding: 0 4px 0 12px;
+  color: var(--text-faint);
+}
+
+.trailing {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  animation: appear 160ms var(--ease);
+}
+
+.message svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.message[data-severity="error"] {
+  color: var(--danger);
+}
+
+.message[data-severity="warning"] {
+  color: var(--warning);
+}
+
+.hint {
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}

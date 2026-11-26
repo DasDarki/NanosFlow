@@ -28,14 +28,56 @@ const ACTIVITY_LIMIT: usize = 40;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
+pub struct McpPermissions {
+    pub edit_graphs: bool,
+    pub change_project: bool,
+    pub build: bool,
+    pub test_server: bool,
+    pub navigate: bool,
+    pub show_cursor: bool,
+}
+
+impl Default for McpPermissions {
+    fn default() -> Self {
+        Self {
+            edit_graphs: true,
+            change_project: true,
+            build: true,
+            test_server: true,
+            navigate: true,
+            show_cursor: true,
+        }
+    }
+}
+
+impl McpPermissions {
+    pub fn blocked_tools(&self) -> Vec<&'static str> {
+        let groups: [(bool, &[&'static str]); 5] = [
+            (self.edit_graphs, &["edit_graph"]),
+            (self.change_project, &["create_graph", "set_variables", "set_signature"]),
+            (self.build, &["build_project", "preview_lua"]),
+            (self.test_server, &["play_test_server", "stop_test_server", "read_server_log"]),
+            (self.navigate, &["open_graph"]),
+        ];
+        groups.into_iter().filter(|(allowed, _)| !allowed).flat_map(|(_, tools)| tools.iter().copied()).collect()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
 pub struct McpSettings {
     enabled: bool,
     port: u16,
+    permissions: McpPermissions,
 }
 
 impl Default for McpSettings {
     fn default() -> Self {
-        Self { enabled: false, port: DEFAULT_PORT }
+        Self {
+            enabled: false,
+            port: DEFAULT_PORT,
+            permissions: McpPermissions::default(),
+        }
     }
 }
 
@@ -145,6 +187,10 @@ impl McpState {
         self.inner.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
+    pub fn permissions(&self) -> McpPermissions {
+        self.lock().settings.permissions.clone()
+    }
+
     pub fn context(&self) -> Option<EditorContext> {
         self.lock().context.clone()
     }
@@ -202,6 +248,7 @@ impl McpState {
         focus: Option<[f64; 2]>,
     ) {
         let root = project.root();
+        let show_cursor = self.lock().settings.permissions.show_cursor;
         let _ = app.emit(
             AGENT_FILES_EVENT,
             AgentFilesMessage {
@@ -210,7 +257,7 @@ impl McpState {
                 agent: agent.to_owned(),
                 graph: graph.map(|graph| describe::relative(root, graph)),
                 nodes: nodes.iter().map(Id::to_string).collect(),
-                focus,
+                focus: focus.filter(|_| show_cursor),
             },
         );
     }
@@ -232,6 +279,14 @@ impl McpState {
     }
 
     fn apply(&self, app: &AppHandle, settings: McpSettings) {
+        let unchanged_server = {
+            let inner = self.lock();
+            inner.running.is_some() && inner.settings.enabled == settings.enabled && inner.settings.port == settings.port
+        };
+        if unchanged_server {
+            self.lock().settings = settings;
+            return;
+        }
         self.stop_server();
         let result = if settings.enabled { start_server(app, settings.port).map(Some) } else { Ok(None) };
         let mut inner = self.lock();

@@ -1307,7 +1307,7 @@ fn with_helpers(used: &[&'static str], states: Vec<Statement>, block: Vec<Statem
     let mut statements: Vec<Statement> = helpers::ALL
         .iter()
         .filter(|name| used.contains(name))
-        .map(|name| Statement::Raw(helpers::source(name).to_owned()))
+        .map(|name| Statement::Raw(helpers::render(name)))
         .collect();
     statements.extend(states);
     statements.extend(block);

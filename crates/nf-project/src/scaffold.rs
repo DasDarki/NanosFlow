@@ -107,6 +107,7 @@ pub fn create_project(options: &NewProjectOptions) -> Result<(Project, Vec<Strin
             .map(str::trim)
             .filter(|asset| !asset.is_empty() && options.package_type == PackageType::Map)
             .map(str::to_owned),
+        custom_settings: Vec::new(),
     };
     package.write(&package_directory)?;
 

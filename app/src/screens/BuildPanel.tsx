@@ -2,6 +2,7 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { CircleAlert, CircleCheck, FolderSearch, Hammer, LoaderCircle, TriangleAlert, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "../components/Button";
+import { useFloating } from "../components/useFloating";
 import type { BuildProblem, BuildReport, CommandError, PackageReport } from "../types";
 import styles from "./BuildPanel.module.css";
 
@@ -80,6 +81,7 @@ function ProblemRow({ problem, onSelect }: { problem: BuildProblem; onSelect: (p
 
 export function BuildPanel({ state, onClose, onRebuild, onSelectProblem }: BuildPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const floating = useFloating<HTMLDivElement>("build", panelRef);
   const { tone, title } = headline(state);
   const report = state.status === "done" ? state.report : state.status === "building" ? state.previous : null;
 
@@ -98,8 +100,8 @@ export function BuildPanel({ state, onClose, onRebuild, onSelectProblem }: Build
   }, []);
 
   return (
-    <div ref={panelRef} className={styles.panel} role="dialog" aria-label="Build result" tabIndex={-1}>
-      <header className={styles.header}>
+    <div ref={panelRef} className={styles.panel} style={floating.style} role="dialog" aria-label="Build result" tabIndex={-1}>
+      <header className={styles.header} {...floating.handle}>
         <span className={styles.statusIcon} data-tone={tone}>
           {tone === "busy" && <LoaderCircle size={18} className={styles.spin} />}
           {tone === "success" && <CircleCheck size={18} />}

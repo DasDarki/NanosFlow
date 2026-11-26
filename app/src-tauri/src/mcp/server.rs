@@ -238,10 +238,11 @@ fn json_to_toml(value: Value, what: &str) -> Result<toml::Value, String> {
 
 impl NanosFlowServer {
     pub fn new(app: AppHandle) -> Self {
-        Self {
-            app,
-            tool_router: Self::tool_router(),
+        let mut tool_router = Self::tool_router();
+        for tool in app.state::<McpState>().permissions().blocked_tools() {
+            tool_router.remove_route(tool);
         }
+        Self { app, tool_router }
     }
 
     fn state(&self) -> tauri::State<'_, McpState> {

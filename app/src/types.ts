@@ -58,8 +58,20 @@ export interface PackageSummary {
   packageType: PackageType;
   version: string;
   requirements: string[];
+  customSettings: CustomSetting[];
   graphs: GraphSummary[];
   folders: FolderSummary[];
+}
+
+export type CustomSettingKind = "boolean" | "integer" | "floating" | "select" | "text";
+
+export interface CustomSetting {
+  key: string;
+  label: string;
+  type: CustomSettingKind;
+  description?: string;
+  default: boolean | number | string;
+  options?: string[];
 }
 
 export interface EntryLocation {
@@ -249,6 +261,7 @@ export interface TestServerSettings {
   map: string | null;
   gameMode: string | null;
   downloadMissing: boolean;
+  customSettings?: Record<string, boolean | number | string>;
 }
 
 export interface LaunchPlan {
@@ -357,9 +370,29 @@ export interface SessionFilesMessage {
   author: string;
 }
 
+export interface McpPermissions {
+  editGraphs: boolean;
+  changeProject: boolean;
+  build: boolean;
+  testServer: boolean;
+  navigate: boolean;
+  showCursor: boolean;
+}
+
 export interface McpSettings {
   enabled: boolean;
   port: number;
+  permissions: McpPermissions;
+}
+
+export type NodeListLayout = "flat" | "categorized";
+
+export interface Preferences {
+  interfaceScale: number;
+  buttonLabels: boolean;
+  nodeList: NodeListLayout;
+  minimap: boolean;
+  debuggerPort: number;
 }
 
 export interface McpActivity {

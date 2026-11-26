@@ -1,3 +1,4 @@
+mod custom_settings;
 mod error;
 mod fs_util;
 mod graph;
@@ -14,6 +15,7 @@ mod tree;
 mod validation;
 mod variable;
 
+pub use custom_settings::{CustomSetting, CustomSettingKind, command_line_argument, validate_custom_settings};
 pub use error::ProjectError;
 pub use graph::{
     ClassSettings, EventDirection, FunctionPin, FunctionSignature, GraphDocument, GraphKind, GraphManifest, InterfaceFunction, NodeLoadError, ScriptContext,

@@ -4,7 +4,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::fs_util::{read_toml, write_toml};
-use crate::{Id, ProjectError};
+use crate::{CustomSetting, Id, ProjectError};
 
 pub const DEFAULT_COMPATIBILITY_VERSION: &str = "1.144";
 
@@ -44,6 +44,8 @@ pub struct PackageManifest {
     pub assets_requirements: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub map_asset: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub custom_settings: Vec<CustomSetting>,
 }
 
 impl PackageManifest {
@@ -99,6 +101,9 @@ impl PackageManifest {
                 let _ = writeln!(output, "    compatible_maps = []");
                 let _ = writeln!(output);
                 let _ = writeln!(output, "[custom_settings]");
+                for setting in &self.custom_settings {
+                    let _ = writeln!(output, "    {}", setting.nanos_entry());
+                }
             }
             PackageType::Script => {
                 let _ = writeln!(output, "    compatible_game_modes = []");

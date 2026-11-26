@@ -16,6 +16,7 @@ pub struct PackageSummary {
     pub package_type: PackageType,
     pub version: String,
     pub requirements: Vec<String>,
+    pub custom_settings: Vec<crate::CustomSetting>,
     pub graphs: Vec<GraphSummary>,
     pub folders: Vec<FolderSummary>,
 }
@@ -77,6 +78,21 @@ impl Project {
 
     pub fn packages(&self) -> &[PackageSummary] {
         &self.packages
+    }
+
+    pub fn update_custom_settings(&self, package_directory: &Path, settings: Vec<crate::CustomSetting>) -> Result<(), ProjectError> {
+        if !self.packages.iter().any(|package| package.path == package_directory) {
+            return Err(ProjectError::InvalidOptions {
+                issues: vec![FieldIssue::error("customSettings", "This package is not part of the project.")],
+            });
+        }
+        let issues = crate::validate_custom_settings(&settings);
+        if !issues.is_empty() {
+            return Err(ProjectError::InvalidOptions { issues });
+        }
+        let mut manifest = crate::PackageManifest::read(package_directory)?;
+        manifest.custom_settings = settings;
+        manifest.write(package_directory)
     }
 
     pub fn update_requirements(&self, package_directory: &Path, requirements: &[String]) -> Result<(), ProjectError> {
@@ -174,6 +190,7 @@ fn scan_packages(packages_directory: &Path) -> Result<Vec<PackageSummary>, Proje
             package_type: manifest.package_type,
             version: manifest.version,
             requirements: manifest.packages_requirements,
+            custom_settings: manifest.custom_settings,
             graphs: tree.graphs,
             folders: tree.folders,
         });
@@ -199,6 +216,7 @@ mod tests {
             packages_requirements: requirements.iter().map(|requirement| (*requirement).to_owned()).collect(),
             assets_requirements: Vec::new(),
             map_asset: None,
+            custom_settings: Vec::new(),
         }
         .write(&directory)
         .unwrap();

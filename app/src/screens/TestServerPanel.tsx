@@ -4,6 +4,7 @@ import { Copy, Download, FolderOpen, FolderSearch, HardDrive, Play, RotateCw, Se
 import { useEffect, useRef, useState } from "react";
 import { api, toCommandError } from "../api";
 import { Button } from "../components/Button";
+import { useFloating } from "../components/useFloating";
 import { ChoiceCard, ChoiceGrid } from "../components/Choice";
 import type { InstallProgress, ProjectView, ServerBranch, SteamApp, TestServerSettings, TestServerStatus } from "../types";
 import styles from "./TestServerPanel.module.css";
@@ -92,8 +93,10 @@ export function TestServerPanel({
   const [error, setError] = useState<string | null>(null);
   const [portDraft, setPortDraft] = useState<string | null>(null);
   const [mapDraft, setMapDraft] = useState<string | null>(null);
+  const [settingDrafts, setSettingDrafts] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
   const consoleRef = useRef<HTMLDivElement>(null);
+  const floating = useFloating<HTMLElement>("test-server");
   const stickToBottomRef = useRef(true);
 
   useEffect(() => {
@@ -123,6 +126,19 @@ export function TestServerPanel({
     } catch (reason) {
       setError(toCommandError(reason).message);
     }
+  };
+
+  const gameModeFolder = status?.plan.gameMode ?? null;
+  const gameModeSettings = project.packages.find((pkg) => pkg.folder === gameModeFolder)?.customSettings ?? [];
+
+  const saveCustomSetting = async (key: string, value: boolean | number | string | undefined) => {
+    const current = { ...(status?.settings.customSettings ?? {}) };
+    if (value === undefined) {
+      delete current[key];
+    } else {
+      current[key] = value;
+    }
+    await save({ customSettings: current });
   };
 
   const chooseFolder = async () => {
@@ -167,8 +183,8 @@ export function TestServerPanel({
   const busyInstalling = Boolean(status?.installing);
 
   return (
-    <section className={styles.panel} aria-label="Test server" tabIndex={-1}>
-      <header className={styles.header}>
+    <section ref={floating.ref} className={styles.panel} style={floating.style} aria-label="Test server" tabIndex={-1}>
+      <header className={styles.header} {...floating.handle}>
         <span className={styles.statusIcon} data-state={runningHere ? "running" : busyInstalling ? "busy" : "idle"}>
           <Server size={16} />
         </span>
@@ -458,6 +474,62 @@ export function TestServerPanel({
                 )}
               </div>
             </section>
+
+            {gameModeSettings.length > 0 && (
+              <section className={styles.section}>
+                <h3>Custom settings</h3>
+                {gameModeSettings.map((setting) => {
+                  const override = settings.customSettings?.[setting.key];
+                  const label = setting.label || setting.key;
+                  const choose = (value: string) => void saveCustomSetting(setting.key, value === "" ? undefined : setting.type === "boolean" ? value === "true" : value);
+                  return (
+                    <div key={setting.key} className={styles.row}>
+                      <span className={styles.label} title={setting.key}>
+                        {label}
+                      </span>
+                      {setting.type === "boolean" || setting.type === "select" ? (
+                        <select className={styles.select} value={override === undefined ? "" : String(override)} onChange={(event) => choose(event.target.value)}>
+                          <option value="">Default ({String(setting.default)})</option>
+                          {(setting.type === "boolean" ? ["true", "false"] : (setting.options ?? [])).map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          className={styles.input}
+                          inputMode={setting.type === "text" ? undefined : "decimal"}
+                          value={settingDrafts[setting.key] ?? (override === undefined ? "" : String(override))}
+                          placeholder={`Default: ${String(setting.default)}`}
+                          spellCheck={false}
+                          onChange={(event) => setSettingDrafts((current) => ({ ...current, [setting.key]: event.target.value }))}
+                          onBlur={() => {
+                            const draft = settingDrafts[setting.key];
+                            if (draft === undefined) {
+                              return;
+                            }
+                            const trimmed = draft.trim();
+                            const value =
+                              trimmed === ""
+                                ? undefined
+                                : setting.type === "integer"
+                                  ? Math.trunc(Number(trimmed))
+                                  : setting.type === "floating"
+                                    ? Number(trimmed)
+                                    : draft;
+                            void saveCustomSetting(setting.key, typeof value === "number" && Number.isNaN(value) ? undefined : value).then(() =>
+                              setSettingDrafts(({ [setting.key]: _, ...rest }) => rest),
+                            );
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                <span className={styles.hint}>Empty means the default. NanosFlow passes these values with --custom_settings when the server starts, so restart it to apply a change.</span>
+              </section>
+            )}
           </div>
         )
       )}

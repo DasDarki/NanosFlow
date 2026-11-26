@@ -1,0 +1,93 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.line > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.line > .select,
+.line > .remove {
+  flex: 0 0 auto;
+}
+
+.select {
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+  font-size: 13px;
+  outline: none;
+}
+
+.select:focus {
+  border-color: var(--accent);
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-faint);
+}
+
+.remove:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.defaultField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.defaultField > :last-child {
+  flex: 1;
+}
+
+.empty {
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+.error {
+  font-size: 12.5px;
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spacer {
+  flex: 1;
+}

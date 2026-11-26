@@ -5,6 +5,8 @@ import {
   Activity,
   Bot,
   ChevronLeft,
+  CircleHelp,
+  Command,
   CircleAlert,
   CircleCheck,
   FolderSearch,
@@ -39,6 +41,9 @@ import { RuntimePanel } from "./RuntimePanel";
 import { DebugBar } from "./DebugBar";
 import { sessionState } from "../session/SessionPanel";
 import { agentActive } from "../settings/useMcp";
+import type { SettingsSection } from "../settings/SettingsPage";
+import { modifierLabel } from "../format";
+import { useCommands, type Command as PaletteCommand } from "../commands/registry";
 import { TestServerPanel, type ConsoleLine, type InstallState, type ServerTab } from "./TestServerPanel";
 import styles from "./ProjectShell.module.css";
 
@@ -49,7 +54,9 @@ interface ProjectShellProps {
   sessionOpen: boolean;
   onToggleSession: () => void;
   mcp: McpStatus | null;
-  onOpenSettings: () => void;
+  onOpenSettings: (section?: SettingsSection) => void;
+  onOpenHelp: (topic?: string) => void;
+  onOpenPalette: () => void;
   onClose: () => void;
 }
 
@@ -97,7 +104,7 @@ interface AgentCursor {
   selection: string[];
 }
 
-export function ProjectShell({ project, onProjectChange, session, sessionOpen, onToggleSession, mcp, onOpenSettings, onClose }: ProjectShellProps) {
+export function ProjectShell({ project, onProjectChange, session, sessionOpen, onToggleSession, mcp, onOpenSettings, onOpenHelp, onOpenPalette, onClose }: ProjectShellProps) {
   const { notify, reportError } = useToasts();
   const [selectedGraphId, setSelectedGraphId] = useState<string | null>(
     () => project.packages[0]?.graphs.find((graph) => graph.context === "server")?.id ?? project.packages[0]?.graphs[0]?.id ?? null,
@@ -886,6 +893,45 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
     );
   }
 
+  const paletteCommands: PaletteCommand[] = [
+    { id: "project.build", title: "Build the project", group: "Run", shortcut: `${modifierLabel} B`, keywords: "compile lua", run: () => void runBuild() },
+    guestGame
+      ? { id: "project.join", title: "Join the host's game", group: "Run", shortcut: "Alt P", keywords: "play connect", run: () => void joinGame() }
+      : {
+          id: "project.play",
+          title: serverStatus?.runningHere ? "Reload the test server" : "Play on the test server",
+          group: "Run",
+          shortcut: "Alt P",
+          keywords: "start run server test",
+          run: () => void playServer(false),
+        },
+    ...(serverStatus?.runningHere && !guestGame
+      ? [
+          { id: "project.restart", title: "Restart the test server", group: "Run" as const, keywords: "server", run: () => void playServer(true) },
+          { id: "project.stop", title: "Stop the test server", group: "Run" as const, keywords: "server", run: () => void stopServer() },
+        ]
+      : []),
+    { id: "project.search", title: "Search the whole project", group: "Project", shortcut: `${modifierLabel} Shift F`, keywords: "find text", run: () => void openSearch({ mode: "text", query: "" }) },
+    { id: "project.settings", title: "Project settings", group: "Project", keywords: "output requirements custom settings config", run: () => setSettingsOpen(true) },
+    { id: "project.reveal", title: "Show the project in its folder", group: "Project", keywords: "explorer files reveal", run: () => void revealItemInDir(project.projectFile) },
+    { id: "project.close", title: "Close the project", group: "Project", keywords: "back start screen", run: onClose },
+    { id: "panel.runtime", title: runtimeOpen ? "Hide the runtime log" : "Show the runtime log", group: "Panels", keywords: "errors log", run: () => setRuntimeOpen((value) => !value) },
+    { id: "panel.server", title: serverOpen ? "Hide the test server panel" : "Show the test server panel", group: "Panels", keywords: "console install", run: () => setServerOpen((value) => !value) },
+    ...(build ? [{ id: "panel.build", title: buildOpen ? "Hide the build result" : "Show the build result", group: "Panels" as const, keywords: "errors problems", run: () => setBuildOpen((value) => !value) }] : []),
+    { id: "panel.agents", title: "AI agent settings", group: "Panels", keywords: "mcp claude", run: () => onOpenSettings("agents") },
+    ...project.packages.flatMap((pkg) =>
+      pkg.graphs.map((graph) => ({
+        id: `graph.${graph.id}`,
+        title: graph.name,
+        group: "Graphs" as const,
+        detail: [pkg.title, graph.context, ...graph.folders].join(" / "),
+        keywords: `${graph.kind} graph open`,
+        run: () => setSelectedGraphId(graph.id),
+      })),
+    ),
+  ];
+  useCommands("project", paletteCommands);
+
   return (
     <div className={styles.shell}>
       <header className={styles.titlebar}>
@@ -898,33 +944,36 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
           type="button"
           className={styles.runtimeButton}
           data-active={runtimeOpen}
+          aria-label="Runtime"
           onClick={() => setRuntimeOpen((value) => !value)}
           title="Follow the nanos world log, see runtime errors on their nodes and watched values"
         >
           <Activity size={14} />
-          Runtime
+          <span className={styles.buttonLabel}>Runtime</span>
           {runtimeErrors > 0 && <span className={styles.runtimeCount}>{runtimeErrors}</span>}
         </button>
         <button
           type="button"
           className={styles.runtimeButton}
           data-active={serverOpen}
+          aria-label="Server"
           onClick={() => setServerOpen((value) => !value)}
           title="Install, configure and watch the local test server"
         >
           <Server size={14} />
-          Server
+          <span className={styles.buttonLabel}>Server</span>
           <span className={styles.serverDot} data-state={serverStatus?.runningHere ? "running" : serverStatus?.installing ? "busy" : "idle"} />
         </button>
         <button
           type="button"
           className={styles.runtimeButton}
           data-active={sessionOpen}
+          aria-label="Session"
           onClick={onToggleSession}
           title="Host or join a session to play together"
         >
           <Users size={14} />
-          Session
+          <span className={styles.buttonLabel}>Session</span>
           {session?.view.type === "hosting" && session.view.requests.length > 0 ? (
             <span className={styles.runtimeCount}>{session.view.requests.length}</span>
           ) : (
@@ -934,31 +983,39 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
         <button
           type="button"
           className={styles.runtimeButton}
-          onClick={onOpenSettings}
+          aria-label="Agents"
+          onClick={() => onOpenSettings("agents")}
           title={mcp?.settings.enabled ? `AI agents can control NanosFlow through ${mcp.url}` : "Let AI agents like Claude Code control NanosFlow"}
         >
           <Bot size={14} />
-          Agents
+          <span className={styles.buttonLabel}>Agents</span>
           <span
             className={styles.serverDot}
             data-state={mcp?.error ? "busy" : agentActive(mcp, now) ? "running" : "idle"}
           />
         </button>
-        <button type="button" className={styles.searchButton} onClick={() => void openSearch({ mode: "text", query: "" })} title="Search the whole project">
+        <button
+          type="button"
+          className={styles.runtimeButton}
+          aria-label="Search"
+          onClick={() => void openSearch({ mode: "text", query: "" })}
+          title={`Search the whole project (${modifierLabel}+Shift+F)`}
+        >
           <Search size={14} />
-          <span>Search project</span>
-          <kbd>Ctrl Shift F</kbd>
+          <span className={styles.buttonLabel}>Search</span>
         </button>
-        <Button variant="ghost" size="small" icon={<FolderSearch size={15} />} onClick={() => revealItemInDir(project.projectFile)}>
-          Show in folder
-        </Button>
+        <span className={styles.divider} />
+        <Button variant="ghost" size="small" icon={<Command size={15} />} onClick={onOpenPalette} title={`Command palette (${modifierLabel}+Shift+P)`} aria-label="Command palette" />
+        <Button variant="ghost" size="small" icon={<FolderSearch size={15} />} onClick={() => revealItemInDir(project.projectFile)} title="Show the project in its folder" aria-label="Show in folder" />
         <Button
           variant="ghost"
           size="small"
           icon={<Settings size={15} />}
           onClick={() => setSettingsOpen(true)}
-          title="Project settings, for example where builds are written"
+          title="Project settings: build output, requirements and custom settings"
+          aria-label="Project settings"
         />
+        <Button variant="ghost" size="small" icon={<CircleHelp size={15} />} onClick={() => onOpenHelp()} title="Help (F1)" aria-label="Help" />
         {build && build.status !== "building" && (
           <button
             type="button"
@@ -993,11 +1050,12 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
           size="small"
           icon={<Hammer size={14} />}
           busy={build?.status === "building"}
+          aria-label="Build"
           onClick={() => void runBuild()}
           disabled={!catalog}
-          title="Compile every package to Lua (Ctrl+B)"
+          title={`Compile every package to Lua (${modifierLabel}+B)`}
         >
-          Build
+          <span className={styles.buttonLabel}>Build</span>
         </Button>
         {guestGame ? (
           <span className={styles.playGroup}>
@@ -1099,6 +1157,10 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
           onProjectChange={(updated) => {
             onProjectChange(updated);
             setScopeRevision((revision) => revision + 1);
+          }}
+          onOpenHelp={(topic) => {
+            setSettingsOpen(false);
+            onOpenHelp(topic);
           }}
         />
       )}

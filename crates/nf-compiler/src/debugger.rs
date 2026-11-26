@@ -1,5 +1,6 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex, MutexGuard};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -99,6 +100,7 @@ struct Shared {
     state: Mutex<State>,
     changed: Condvar,
     listener: Listener,
+    stopped: AtomicBool,
 }
 
 impl Shared {
@@ -178,12 +180,16 @@ impl Debugger {
                 state: Mutex::new(State::default()),
                 changed: Condvar::new(),
                 listener: Arc::new(listener),
+                stopped: AtomicBool::new(false),
             }),
             port,
         };
         let server = debugger.clone();
         thread::spawn(move || {
             for stream in socket.incoming().filter_map(Result::ok) {
+                if server.shared.stopped.load(Ordering::SeqCst) {
+                    break;
+                }
                 let connection = server.clone();
                 thread::spawn(move || connection.handle(stream));
             }
@@ -193,6 +199,14 @@ impl Debugger {
 
     pub fn port(&self) -> u16 {
         self.port
+    }
+
+    pub fn stop(&self) {
+        if self.shared.stopped.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        self.resume(ResumeMode::Continue);
+        let _ = TcpStream::connect_timeout(&std::net::SocketAddr::from(([127, 0, 0, 1], self.port)), Duration::from_millis(500));
     }
 
     pub fn paused(&self) -> Option<BreakpointHit> {
@@ -311,5 +325,28 @@ impl Debugger {
         }
         state.last_contact = Some(Instant::now());
         (202, id.to_string())
+    }
+}
+
+#[cfg(test)]
+mod stop_tests {
+    use super::*;
+
+    #[test]
+    fn stopping_frees_the_port() {
+        let debugger = Debugger::start(0, |_| {}).unwrap();
+        let port = debugger.port();
+        debugger.stop();
+        let mut rebound = None;
+        for _ in 0..50 {
+            if let Ok(again) = Debugger::start(port, |_| {}) {
+                rebound = Some(again);
+                break;
+            }
+            thread::sleep(Duration::from_millis(20));
+        }
+        let again = rebound.expect("the port is free again after stop");
+        assert_eq!(again.port(), port);
+        again.stop();
     }
 }

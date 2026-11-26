@@ -6,12 +6,14 @@ import { Button } from "../components/Button";
 import { ChoiceCard, ChoiceGrid } from "../components/Choice";
 import type { CommandError, PackageSummary, ProjectView } from "../types";
 import dialogStyles from "./EntryDialog.module.css";
+import { CustomSettingsEditor } from "./CustomSettingsEditor";
 import styles from "./ProjectSettings.module.css";
 
 interface ProjectSettingsProps {
   project: ProjectView;
   onClose: () => void;
   onProjectChange: (project: ProjectView) => void;
+  onOpenHelp?: (topic: string) => void;
 }
 
 type OutputMode = "project" | "custom";
@@ -113,7 +115,7 @@ function PackageRequirements({ project, pkg, onProjectChange }: RequirementsProp
   );
 }
 
-export function ProjectSettings({ project, onClose, onProjectChange }: ProjectSettingsProps) {
+export function ProjectSettings({ project, onClose, onProjectChange, onOpenHelp }: ProjectSettingsProps) {
   const [mode, setMode] = useState<OutputMode>(project.customOutputDirectory ? "custom" : "project");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CommandError | null>(null);
@@ -227,6 +229,35 @@ export function ProjectSettings({ project, onClose, onProjectChange }: ProjectSe
             </p>
           </section>
         )}
+
+        <section className={styles.section}>
+          <h3>Custom settings</h3>
+          {project.packages.filter((pkg) => pkg.packageType === "game-mode").length === 0 ? (
+            <p className={styles.note}>Only game modes can declare custom settings. This project has no game mode package.</p>
+          ) : (
+            project.packages
+              .filter((pkg) => pkg.packageType === "game-mode")
+              .map((pkg) => (
+                <div key={pkg.path} className={styles.requirements}>
+                  <div className={styles.packageName}>
+                    <Package size={14} />
+                    <span>{pkg.title}</span>
+                    <code>{pkg.folder}</code>
+                  </div>
+                  <CustomSettingsEditor
+                    project={project}
+                    pkg={pkg}
+                    onProjectChange={onProjectChange}
+                    onOpenHelp={onOpenHelp ? () => onOpenHelp("custom-settings") : undefined}
+                  />
+                </div>
+              ))
+          )}
+          <p className={styles.note}>
+            Server owners set these values in the New Game screen, in Config.toml or with --custom_settings. Read them in server graphs with the Get nodes
+            under Custom Settings in the node list. Values for your test server go into the Server panel.
+          </p>
+        </section>
 
         <div className={dialogStyles.actions}>
           <Button type="button" variant="primary" onClick={onClose}>

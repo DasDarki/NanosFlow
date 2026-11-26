@@ -57,6 +57,20 @@ export interface PinReference {
   direction: "input" | "output";
 }
 
+export interface BrowseCategory {
+  title: string;
+  definitions: NodeDefinition[];
+}
+
+export interface BrowseGroup {
+  title: string;
+  count: number;
+  categories: BrowseCategory[];
+}
+
+const GROUP_ORDER = ["This project", "Basics", "nanos world: classes", "nanos world: static classes", "nanos world: structs and libraries"];
+const KIND_ORDER = ["event", "flow-control", "function", "constructor", "pure-function", "operator", "variable", "literal", "function-entry", "function-return", "comment", "reroute"];
+
 export class NodeCatalog {
   readonly revision: string;
   readonly size: number;
@@ -70,6 +84,7 @@ export class NodeCatalog {
   private readonly projectClasses: ProjectClass[];
   private readonly projectStructs: Set<string>;
   private readonly projectEnums: Set<string>;
+  private readonly extraIds: Set<string>;
 
   constructor(
     payload: CatalogPayload,
@@ -83,6 +98,7 @@ export class NodeCatalog {
     this.projectStructs = new Set(projectStructs.map((structure) => structure.name));
     this.projectEnums = new Set(projectEnums.map((enumeration) => enumeration.name));
     this.revision = payload.revision;
+    this.extraIds = new Set(extras.map((definition) => definition.id));
     const nodes = [...extras, ...payload.nodes];
     this.size = nodes.length;
     for (const node of nodes) {
@@ -301,6 +317,51 @@ export class NodeCatalog {
       return 3;
     }
     return this.typeCategory(pin.type.type) === "any" ? -1 : 1;
+  }
+
+  browse(context: ScriptContext, filter?: { pinType: PinType; direction: "input" | "output" }): BrowseGroup[] {
+    const groups = new Map<string, Map<string, NodeDefinition[]>>();
+    for (const definition of this.search("", filter)) {
+      const group = this.groupOf(definition);
+      const categories = groups.get(group) ?? new Map<string, NodeDefinition[]>();
+      groups.set(group, categories);
+      const list = categories.get(definition.category) ?? [];
+      categories.set(definition.category, list);
+      list.push(definition);
+    }
+    const kindRank = (definition: NodeDefinition) => KIND_ORDER.indexOf(definition.kind);
+    return GROUP_ORDER.filter((title) => groups.has(title)).map((title) => {
+      const categories = [...groups.get(title)!.entries()]
+        .map(([category, definitions]) => ({
+          title: category,
+          definitions: definitions.sort(
+            (left, right) =>
+              Number(!sideRunsIn(left.side, context)) - Number(!sideRunsIn(right.side, context)) ||
+              kindRank(left) - kindRank(right) ||
+              left.title.localeCompare(right.title),
+          ),
+        }))
+        .sort((left, right) => left.title.localeCompare(right.title));
+      return { title, categories, count: categories.reduce((total, category) => total + category.definitions.length, 0) };
+    });
+  }
+
+  private groupOf(definition: NodeDefinition): string {
+    if (this.extraIds.has(definition.id)) {
+      return "This project";
+    }
+    const info = this.classes.get(definition.category);
+    if (!info) {
+      return "Basics";
+    }
+    switch (info.kind) {
+      case "static-class":
+        return "nanos world: static classes";
+      case "class":
+        return "nanos world: classes";
+      default:
+        return "nanos world: structs and libraries";
+    }
   }
 
   search(query: string, filter?: { pinType: PinType; direction: "input" | "output" }): NodeDefinition[] {

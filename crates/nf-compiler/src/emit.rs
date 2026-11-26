@@ -2214,6 +2214,18 @@ impl<'a> Emitter<'a> {
         if let Some(variable) = node_type.strip_prefix("variable/get/") {
             return single("value", self.variable_get(node, variable, block));
         }
+        if let Some(key) = node_type.strip_prefix(nf_graph::CUSTOM_SETTING_PREFIX) {
+            let fallback = definition
+                .outputs
+                .first()
+                .and_then(|pin| pin.default.as_deref())
+                .and_then(|text| format!("value = {text}").parse::<toml::Table>().ok())
+                .and_then(|table| table.get("value").cloned())
+                .map(|value| plain_literal(&value))
+                .unwrap_or_else(Expr::nil);
+            let helper = self.helper(helpers::CUSTOM_SETTING);
+            return single("value", Expr::call(helper, vec![Expr::string(key), fallback]));
+        }
         if ["function/", "method/", "library/", "interface/", "class/spawn/"].iter().any(|prefix| node_type.starts_with(prefix)) {
             return match self.call_expression(node, definition, block) {
                 Some(call) => PureValue::Call(call),

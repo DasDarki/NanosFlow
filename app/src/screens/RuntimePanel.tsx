@@ -3,6 +3,7 @@ import { Activity, ClipboardPaste, Eye, FileText, FolderOpen, Pause, Play, Trash
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, toCommandError } from "../api";
 import { Button } from "../components/Button";
+import { useFloating } from "../components/useFloating";
 import type { CommandError, LogEntry, LogLocation, ProjectView } from "../types";
 import styles from "./RuntimePanel.module.css";
 
@@ -56,6 +57,7 @@ export function RuntimePanel({ project, debuggerError, open, entries, onEntries,
   const listRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
   const panelRef = useRef<HTMLDivElement>(null);
+  const floating = useFloating<HTMLDivElement>("runtime", panelRef);
 
   const graphNames = useMemo(
     () => new Map(project.packages.flatMap((pkg) => pkg.graphs.map((graph) => [graph.id.toLowerCase(), graph.name] as const))),
@@ -188,6 +190,7 @@ export function RuntimePanel({ project, debuggerError, open, entries, onEntries,
     <div
       ref={panelRef}
       className={styles.panel}
+      style={floating.style}
       role="dialog"
       aria-label="Runtime log"
       tabIndex={-1}
@@ -197,7 +200,7 @@ export function RuntimePanel({ project, debuggerError, open, entries, onEntries,
         }
       }}
     >
-      <header className={styles.header}>
+      <header className={styles.header} {...floating.handle}>
         <span className={styles.statusIcon} data-live={following && !error}>
           <Activity size={17} />
         </span>

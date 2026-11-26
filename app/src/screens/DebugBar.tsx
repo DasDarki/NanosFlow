@@ -1,6 +1,7 @@
 import { ArrowDownToLine, ArrowUpFromLine, CirclePause, Play, Redo2 } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "../components/Button";
+import { useFloating } from "../components/useFloating";
 import type { BreakpointHit, ResumeMode, StackFrame } from "../types";
 import styles from "./DebugBar.module.css";
 
@@ -14,6 +15,7 @@ interface DebugBarProps {
 }
 
 export function DebugBar({ hit, location, onResume, onReveal, describeFrame, onRevealFrame }: DebugBarProps) {
+  const floating = useFloating<HTMLDivElement>("debug-bar");
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const mode: ResumeMode | null =
@@ -38,8 +40,8 @@ export function DebugBar({ hit, location, onResume, onReveal, describeFrame, onR
   const frames = [...hit.stack].reverse();
 
   return (
-    <div className={styles.bar} role="status" aria-live="assertive">
-      <div className={styles.header}>
+    <div ref={floating.ref} className={styles.bar} style={floating.style} role="status" aria-live="assertive">
+      <div className={styles.header} {...floating.handle}>
         <CirclePause size={18} className={styles.icon} />
         <div className={styles.titles}>
           <strong>Paused on the {hit.side || "server"}</strong>

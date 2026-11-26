@@ -52,7 +52,7 @@ pub struct TestServerState {
     recent_output: Mutex<VecDeque<String>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsView {
     directory: Option<PathBuf>,
@@ -62,6 +62,8 @@ pub struct SettingsView {
     map: Option<String>,
     game_mode: Option<String>,
     download_missing: bool,
+    #[serde(default)]
+    custom_settings: std::collections::BTreeMap<String, toml::Value>,
 }
 
 impl From<TestServerSettings> for SettingsView {
@@ -74,6 +76,7 @@ impl From<TestServerSettings> for SettingsView {
             map: settings.map,
             game_mode: settings.game_mode,
             download_missing: settings.download_missing,
+            custom_settings: settings.custom_settings,
         }
     }
 }
@@ -88,6 +91,7 @@ impl From<SettingsView> for TestServerSettings {
             map: view.map.filter(|map| !map.trim().is_empty()).map(|map| map.trim().to_owned()),
             game_mode: view.game_mode.filter(|mode| !mode.is_empty()),
             download_missing: view.download_missing,
+            custom_settings: view.custom_settings,
         }
     }
 }

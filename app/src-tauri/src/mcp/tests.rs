@@ -112,3 +112,12 @@ fn searches_and_describes_nodes() {
     let described = describe::node_type_view(scope.get("flow/branch").unwrap());
     assert_eq!(described["outputs"][0]["pin"], "true");
 }
+
+#[test]
+fn permissions_hide_their_tools() {
+    let mut permissions = super::McpPermissions::default();
+    assert!(permissions.blocked_tools().is_empty());
+    permissions.test_server = false;
+    permissions.edit_graphs = false;
+    assert_eq!(permissions.blocked_tools(), ["edit_graph", "play_test_server", "stop_test_server", "read_server_log"]);
+}

@@ -41,6 +41,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, toCommandError } from "../api";
+import { useCommands } from "../commands/registry";
+import { modifierLabel } from "../format";
+import { usePreferences } from "../settings/preferences";
 import { Button } from "../components/Button";
 import { ContextMenu, type MenuItem } from "../components/ContextMenu";
 import { useToasts } from "../components/Toasts";
@@ -359,6 +362,7 @@ function Editor({
   const rightPressRef = useRef<{ x: number; y: number } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
+  const { preferences, update: updatePreferences } = usePreferences();
 
   const update = useCallback((nextNodes: FlowNode[], nextEdges: FlowEdge[]) => {
     nodesRef.current = nextNodes;
@@ -1617,6 +1621,35 @@ function Editor({
     void flow.fitView({ nodes: selected.length > 0 ? selected : undefined, padding: 0.25, maxZoom: 1.2, duration: 300 });
   }, [flow]);
 
+  useCommands(
+    "editor",
+    status === "ready"
+      ? [
+          { id: "editor.add", title: "Add a node", group: "Editor", shortcut: "Space", keywords: "palette insert create", run: () => openPalette(canvasCenter()) },
+          { id: "editor.fit", title: "Fit the graph into view", group: "Editor", shortcut: "F", keywords: "zoom center", run: fitView },
+          { id: "editor.undo", title: "Undo", group: "Editor", shortcut: `${modifierLabel} Z`, run: undo },
+          { id: "editor.redo", title: "Redo", group: "Editor", shortcut: `${modifierLabel} Y`, run: redo },
+          { id: "editor.comment", title: "Comment around the selection", group: "Editor", shortcut: "C", keywords: "group box", run: wrapSelectionInComment },
+          { id: "editor.breakpoint", title: "Toggle a breakpoint on the selection", group: "Editor", shortcut: "F9", keywords: "debug pause", run: toggleBreakpoint },
+          {
+            id: "editor.select-all",
+            title: "Select every node",
+            group: "Editor",
+            shortcut: `${modifierLabel} A`,
+            run: () => update(nodesRef.current.map((node) => ({ ...node, selected: true })), edgesRef.current),
+          },
+          { id: "editor.minimap", title: preferences.minimap ? "Hide the minimap" : "Show the minimap", group: "Editor", keywords: "overview map", run: () => void updatePreferences({ minimap: !preferences.minimap }) },
+          {
+            id: "editor.node-list",
+            title: preferences.nodeList === "flat" ? "Use the categorized node list" : "Use the flat node list",
+            group: "Editor",
+            keywords: "palette sort categories",
+            run: () => void updatePreferences({ nodeList: preferences.nodeList === "flat" ? "categorized" : "flat" }),
+          },
+        ]
+      : [],
+  );
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (palette || timelineNode || status !== "ready") {
@@ -1990,16 +2023,18 @@ function Editor({
               >
                 <Background id="minor" variant={BackgroundVariant.Lines} gap={GRID} color="rgba(255,255,255,0.025)" />
                 <Background id="major" variant={BackgroundVariant.Lines} gap={GRID * 8} color="rgba(255,255,255,0.06)" />
-                <MiniMap
-                  pannable
-                  zoomable
-                  className={styles.minimap}
-                  maskColor="rgba(8, 8, 14, 0.7)"
-                  nodeColor={(node) => {
-                    const definition = catalog.get((node as FlowNode).data.nodeType);
-                    return definition ? definitionColor(definition) : "#7f1d1d";
-                  }}
-                />
+                {preferences.minimap && (
+                  <MiniMap
+                    pannable
+                    zoomable
+                    className={styles.minimap}
+                    maskColor="rgba(8, 8, 14, 0.7)"
+                    nodeColor={(node) => {
+                      const definition = catalog.get((node as FlowNode).data.nodeType);
+                      return definition ? definitionColor(definition) : "#7f1d1d";
+                    }}
+                  />
+                )}
                 <ConnectionHint hint={connectionHint} />
                 <RemoteCursors peers={peers} />
               </ReactFlow>
@@ -2099,26 +2134,6 @@ function Editor({
                     onPlace={startPlacingVariable}
                     onFindUsages={(variable) => onFindUsages(variable.id, variable.name)}
                   />
-                  {graph.kind === "event-graph" && (
-                    <div className={styles.shortcuts}>
-                      {[
-                        ["Space", "Add node"],
-                        ["Right drag", "Pan"],
-                        ["Left drag", "Select"],
-                        ["Alt + click pin", "Disconnect"],
-                        ["Ctrl + D", "Duplicate"],
-                        ["C", "Comment around selection"],
-                        ["Double-click wire", "Add reroute point"],
-                        ["Ctrl + Z / Y", "Undo / Redo"],
-                        ["F", "Fit to view"],
-                      ].map(([keys, action]) => (
-                        <div key={keys} className={styles.shortcut}>
-                          <kbd>{keys}</kbd>
-                          <span>{action}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
             </aside>
@@ -2145,6 +2160,7 @@ function Editor({
             context={graph.context}
             screenPosition={palette.screen}
             filter={palette.filter}
+            layout={preferences.nodeList}
             onPick={(definition) => addNode(definition, palette)}
             onClose={() => setPalette(null)}
           />

@@ -1,18 +1,35 @@
-import { Bot, Check, ChevronDown, Copy, FolderCog, Globe, X } from "lucide-react";
+import { Check, ChevronDown, Copy, FolderCog, Globe } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { api, toCommandError } from "../api";
 import { Button } from "../components/Button";
 import { Segmented, ToggleRow } from "../components/Choice";
 import { TextInput } from "../components/Field";
 import { useToasts } from "../components/Toasts";
-import type { McpClientSetup, McpInstallScope, McpStatus } from "../types";
-import styles from "./AppSettings.module.css";
+import type { McpClientSetup, McpInstallScope, McpPermissions, McpSettings, McpStatus } from "../types";
+import styles from "./AgentSettings.module.css";
 
-interface AppSettingsProps {
+interface AgentSettingsProps {
   status: McpStatus | null;
   projectFile: string | null;
-  onClose: () => void;
 }
+
+const DEFAULT_PERMISSIONS: McpPermissions = {
+  editGraphs: true,
+  changeProject: true,
+  build: true,
+  testServer: true,
+  navigate: true,
+  showCursor: true,
+};
+
+const PERMISSIONS: { key: keyof McpPermissions; title: string; description: string }[] = [
+  { key: "editGraphs", title: "Edit graphs", description: "Add, connect, move and remove nodes." },
+  { key: "changeProject", title: "Change the project", description: "Create graphs and change variables and signatures." },
+  { key: "build", title: "Build and preview Lua", description: "Compile the project and read the generated code." },
+  { key: "testServer", title: "Use the test server", description: "Start and stop the server and read its console." },
+  { key: "navigate", title: "Open graphs in the editor", description: "Switch the graph you are looking at to show you something." },
+  { key: "showCursor", title: "Show the agent's cursor", description: "Mark where an agent works with a cursor and highlighted nodes." },
+];
 
 function ago(timestamp: number, now: number): string {
   const seconds = Math.max(0, Math.round((now - timestamp) / 1000));
@@ -156,22 +173,12 @@ function ClientCard({
   );
 }
 
-export function AppSettings({ status, projectFile, onClose }: AppSettingsProps) {
+export function AgentSettings({ status, projectFile }: AgentSettingsProps) {
   const { reportError } = useToasts();
   const [scope, setScope] = useState<McpInstallScope>("user");
   const [setups, setSetups] = useState<McpClientSetup[]>([]);
   const [port, setPort] = useState(String(status?.settings.port ?? 7920));
   const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 5000);
@@ -193,104 +200,97 @@ export function AppSettings({ status, projectFile, onClose }: AppSettingsProps) 
 
   useEffect(refreshSetups, [refreshSetups, status?.settings.port]);
 
-  const save = async (enabled: boolean, nextPort: number) => {
+  const save = async (settings: McpSettings) => {
     try {
-      await api.updateMcpSettings({ enabled, port: nextPort });
+      await api.updateMcpSettings(settings);
     } catch (error) {
       reportError(toCommandError(error));
     }
   };
 
+  const settings: McpSettings = status?.settings ?? { enabled: false, port: 7920, permissions: DEFAULT_PERMISSIONS };
+  const permissions = settings.permissions ?? DEFAULT_PERMISSIONS;
   const parsedPort = Number(port);
   const portValid = Number.isInteger(parsedPort) && parsedPort >= 1024 && parsedPort <= 65535;
-  const enabled = status?.settings.enabled ?? false;
+  const setPermission = (key: keyof McpPermissions, value: boolean) => void save({ ...settings, permissions: { ...permissions, [key]: value } });
 
   return (
-    <div className={styles.backdrop} onMouseDown={onClose}>
-      <div className={styles.dialog} role="dialog" aria-label="Settings" onMouseDown={(event) => event.stopPropagation()}>
-        <header className={styles.header}>
-          <div>
-            <h2>Settings</h2>
-            <p>These settings apply to NanosFlow on this computer.</p>
+    <>
+      <section className={styles.section}>
+        <ToggleRow
+          title="Let AI agents control NanosFlow"
+          description="Starts a local MCP server. Agents like Claude Code can then read and edit your graphs, build the project and use the test server, live in this window."
+          checked={settings.enabled}
+          onChange={(checked) => void save({ ...settings, enabled: checked })}
+        />
+        {status && (
+          <div className={styles.server} data-state={status.error ? "error" : status.running ? "running" : "off"}>
+            <span className={styles.dot} />
+            <span className={styles.serverText}>
+              {status.error ? status.error : status.running ? "Listening on" : "Off. Setting up a client below turns it on."}
+              {status.running && !status.error && <code>{status.url}</code>}
+            </span>
+            <label className={styles.port}>
+              Port
+              <TextInput mono inputMode="numeric" value={port} onValueChange={setPort} aria-label="MCP port" />
+            </label>
+            <Button size="small" variant="secondary" disabled={!portValid || parsedPort === settings.port} onClick={() => void save({ ...settings, port: parsedPort })}>
+              Save
+            </Button>
           </div>
-          <button type="button" className={styles.close} onClick={onClose} aria-label="Close the settings">
-            <X size={16} />
-          </button>
-        </header>
+        )}
+        <p className={styles.note}>Only programs on this computer can connect. Websites are refused. Each change an agent makes is one step you can undo with Ctrl+Z.</p>
+      </section>
 
-        <div className={styles.body}>
-          <section className={styles.section}>
-            <h3>
-              <Bot size={15} />
-              AI agents
-            </h3>
+      <section className={styles.section}>
+        <h3>What agents may do</h3>
+        <div className={styles.permissions}>
+          {PERMISSIONS.map((permission) => (
             <ToggleRow
-              title="Let AI agents control NanosFlow"
-              description="Starts a local MCP server. Agents like Claude Code can then read and edit your graphs, build the project and use the test server, live in this window."
-              checked={enabled}
-              onChange={(checked) => void save(checked, status?.settings.port ?? 7920)}
+              key={permission.key}
+              title={permission.title}
+              description={permission.description}
+              checked={permissions[permission.key]}
+              onChange={(checked) => setPermission(permission.key, checked)}
             />
-            {status && (
-              <div className={styles.server} data-state={status.error ? "error" : status.running ? "running" : "off"}>
-                <span className={styles.dot} />
-                <span className={styles.serverText}>
-                  {status.error ? status.error : status.running ? "Listening on" : "Off. Setting up a client below turns it on."}
-                  {status.running && !status.error && <code>{status.url}</code>}
-                </span>
-                <label className={styles.port}>
-                  Port
-                  <TextInput mono inputMode="numeric" value={port} onValueChange={setPort} aria-label="MCP port" />
-                </label>
-                <Button
-                  size="small"
-                  variant="secondary"
-                  disabled={!portValid || parsedPort === status.settings.port}
-                  onClick={() => void save(enabled, parsedPort)}
-                >
-                  Save
-                </Button>
-              </div>
-            )}
-            <p className={styles.note}>
-              Only programs on this computer can connect. Websites are refused. Each change an agent makes is one step you can undo with Ctrl+Z.
-            </p>
-          </section>
-
-          <section className={styles.section}>
-            <h3>Set up a client</h3>
-            <ul className={styles.clients}>
-              {setups.map((setup) => (
-                <ClientCard key={setup.kind} setup={setup} scope={scope} onScopeChange={setScope} projectFile={projectFile} onInstalled={refreshSetups} />
-              ))}
-            </ul>
-          </section>
-
-          {status && (status.clients.length > 0 || status.activity.length > 0) && (
-            <section className={styles.section}>
-              <h3>Recent activity</h3>
-              <ul className={styles.connected}>
-                {status.clients.map((client) => (
-                  <li key={client.name}>
-                    <span className={styles.dot} data-recent={now - client.lastSeen < 15000} />
-                    <span className={styles.clientName}>{client.name}</span>
-                    <span className={styles.muted}>{ago(client.lastSeen, now)}</span>
-                  </li>
-                ))}
-              </ul>
-              <ol className={styles.activity}>
-                {status.activity
-                  .slice(-12)
-                  .reverse()
-                  .map((entry) => (
-                    <li key={entry.id}>
-                      <span className={styles.muted}>{entry.client}</span> {entry.summary}
-                    </li>
-                  ))}
-              </ol>
-            </section>
-          )}
+          ))}
         </div>
-      </div>
-    </div>
+        <p className={styles.note}>Changed abilities apply to new agent sessions. Restart the agent, or reconnect its MCP server, to pick them up.</p>
+      </section>
+
+      <section className={styles.section}>
+        <h3>Set up a client</h3>
+        <ul className={styles.clients}>
+          {setups.map((setup) => (
+            <ClientCard key={setup.kind} setup={setup} scope={scope} onScopeChange={setScope} projectFile={projectFile} onInstalled={refreshSetups} />
+          ))}
+        </ul>
+      </section>
+
+      {status && (status.clients.length > 0 || status.activity.length > 0) && (
+        <section className={styles.section}>
+          <h3>Recent activity</h3>
+          <ul className={styles.connected}>
+            {status.clients.map((client) => (
+              <li key={client.name}>
+                <span className={styles.dot} data-recent={now - client.lastSeen < 15000} />
+                <span className={styles.clientName}>{client.name}</span>
+                <span className={styles.muted}>{ago(client.lastSeen, now)}</span>
+              </li>
+            ))}
+          </ul>
+          <ol className={styles.activity}>
+            {status.activity
+              .slice(-12)
+              .reverse()
+              .map((entry) => (
+                <li key={entry.id}>
+                  <span className={styles.muted}>{entry.client}</span> {entry.summary}
+                </li>
+              ))}
+          </ol>
+        </section>
+      )}
+    </>
   );
 }

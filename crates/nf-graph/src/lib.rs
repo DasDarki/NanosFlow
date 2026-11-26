@@ -25,6 +25,7 @@ pub use catalog::{
     Side, cast_definitions,
 };
 pub use scope::{
+    CUSTOM_SETTING_PREFIX, custom_setting_definition, custom_setting_id,
     CLASS_SELF, FUNCTION_ENTRY, ProjectEnum, ProjectStruct, enum_switch_definition, struct_break_id, struct_definitions, struct_make_id, struct_set_id, event_definitions, event_handler_id, event_send_id, event_send_to_player_id, FUNCTION_RETURN, GraphScope, ProjectClass, ScopeData, build_scope, call_definition,
     call_node_id, class_event_node_id, entry_definition, method_node_id, project_classes, return_definition,
     spawn_node_id, validate_signature, validate_variables, variable_get_id, variable_set_id, EXEC_TYPE, LibraryFunction, LibraryPackage,

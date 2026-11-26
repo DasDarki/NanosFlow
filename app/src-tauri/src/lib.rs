@@ -6,6 +6,7 @@ mod error;
 mod graph_commands;
 mod launch;
 mod mcp;
+mod preferences;
 mod recent;
 mod session;
 mod test_server;
@@ -46,7 +47,9 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
-            app.manage(debugger::DebuggerState::start(app.handle()));
+            let preferences = preferences::load(app.handle());
+            app.manage(debugger::DebuggerState::start(app.handle(), preferences.debugger_port));
+            app.manage(preferences::PreferencesState::new(preferences));
             mcp::start(app.handle());
             Ok(())
         })
@@ -117,6 +120,9 @@ pub fn run() {
             session::leave_session,
             session::update_presence,
             session::join_session_game,
+            preferences::preferences,
+            preferences::update_preferences,
+            graph_commands::update_custom_settings,
             mcp::mcp_status,
             mcp::update_mcp_settings,
             mcp::mcp_client_setups,

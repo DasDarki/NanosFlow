@@ -58,6 +58,41 @@ pub fn event_send_to_player_id(event: Id) -> String {
     format!("send-event/{event}/player")
 }
 
+pub const CUSTOM_SETTING_PREFIX: &str = "setting/";
+
+pub fn custom_setting_id(key: &str) -> String {
+    format!("{CUSTOM_SETTING_PREFIX}{key}")
+}
+
+pub fn custom_setting_definition(setting: &nf_project::CustomSetting) -> NodeDefinition {
+    let mut description = format!(
+        "Reads the custom setting '{}' of this game mode. Players set it in the New Game screen, servers in Config.toml or with --custom_settings.",
+        setting.key
+    );
+    if !setting.description.trim().is_empty() {
+        description = format!("{} {description}", setting.description.trim());
+    }
+    NodeDefinition {
+        id: custom_setting_id(&setting.key),
+        title: format!("Get {}", setting.display_label()),
+        subtitle: Some("Custom setting".to_owned()),
+        category: "Custom Settings".to_owned(),
+        kind: NodeKind::PureFunction,
+        side: Side::Server,
+        description,
+        inputs: Vec::new(),
+        outputs: vec![
+            PinDefinition::data("value", setting.display_label(), TypeExpr::named(setting.kind.lua_type()))
+                .with_default(&setting.default_value().to_string()),
+        ],
+        keywords: vec!["setting".to_owned(), "config".to_owned(), "custom settings".to_owned(), setting.key.clone()],
+        api: None,
+        context_warnings: Vec::new(),
+        callbacks: Vec::new(),
+        dynamic: None,
+    }
+}
+
 pub fn variable_get_id(variable: Id) -> String {
     format!("variable/get/{variable}")
 }
@@ -1008,6 +1043,9 @@ pub fn build_scope(catalog: &NodeCatalog, package_directory: &Path, current_grap
     let class_names: HashMap<Id, &str> = classes.iter().map(|class| (class.id, class.name.as_str())).collect();
 
     let mut definitions = Vec::new();
+    if let Ok(manifest) = nf_project::PackageManifest::read(package_directory) {
+        definitions.extend(manifest.custom_settings.iter().map(custom_setting_definition));
+    }
     for library_class in &library_classes {
         let Some(class) = classes.iter().find(|class| class.id == library_class.graph.id) else {
             continue;

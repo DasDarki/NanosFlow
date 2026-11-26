@@ -85,9 +85,52 @@
   position: relative;
   margin-top: auto;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
   color: var(--text-faint);
   font-size: 12px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.footerLinks button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.footerLinks button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.paletteHint {
+  margin-left: auto;
+}
+
+.paletteHint kbd {
+  margin-right: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.footerMeta {
+  display: flex;
+  justify-content: space-between;
 }
 
 .recent {

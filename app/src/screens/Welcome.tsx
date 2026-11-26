@@ -1,5 +1,5 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { FolderOpen, FolderSearch, Plus, Search, Settings, Sparkles, Users, X } from "lucide-react";
+import { CircleHelp, FolderOpen, FolderSearch, Plus, Search, Settings, Sparkles, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { TextInput } from "../components/Field";
@@ -18,6 +18,7 @@ interface WelcomeProps {
   session: SessionStatus | null;
   onOpenSession: () => void;
   onOpenSettings: () => void;
+  onOpenHelp: () => void;
 }
 
 export function Welcome({
@@ -30,6 +31,7 @@ export function Welcome({
   session,
   onOpenSession,
   onOpenSettings,
+  onOpenHelp,
 }: WelcomeProps) {
   const [filter, setFilter] = useState("");
 
@@ -64,14 +66,26 @@ export function Welcome({
             {sessionState(session) === "idle" ? "Join a session" : "Current session"}
             {sessionState(session) !== "idle" && <span className={styles.sessionDot} data-state={sessionState(session)} />}
           </Button>
-          <Button variant="ghost" size="large" icon={<Settings size={18} />} onClick={onOpenSettings}>
-            Settings and AI agents
-          </Button>
           <p className={styles.dropHint}>or drop a .nfproj file anywhere on this window</p>
         </div>
         <footer className={styles.footer}>
-          <span>v{appInfo?.version ?? "-"}</span>
-          <span>nanos world API {appInfo?.apiRevision ?? "-"}</span>
+          <div className={styles.footerLinks}>
+            <button type="button" onClick={onOpenSettings}>
+              <Settings size={14} />
+              Settings
+            </button>
+            <button type="button" onClick={onOpenHelp}>
+              <CircleHelp size={14} />
+              Help
+            </button>
+            <span className={styles.paletteHint}>
+              <kbd>{modifierLabel} Shift P</kbd> commands
+            </span>
+          </div>
+          <div className={styles.footerMeta}>
+            <span>v{appInfo?.version ?? "-"}</span>
+            <span>nanos world API {appInfo?.apiRevision ?? "-"}</span>
+          </div>
         </footer>
       </aside>
 

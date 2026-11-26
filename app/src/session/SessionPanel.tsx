@@ -4,6 +4,7 @@ import { api, toCommandError } from "../api";
 import { Button } from "../components/Button";
 import { Field, TextInput } from "../components/Field";
 import { useToasts } from "../components/Toasts";
+import { useFloating } from "../components/useFloating";
 import type { SessionSettings, SessionStatus, SessionView } from "../types";
 import type { SessionApi } from "./useSession";
 import styles from "./SessionPanel.module.css";
@@ -140,10 +141,11 @@ export function SessionPanel({ session, projectFile, onClose }: SessionPanelProp
   }, [onClose]);
 
   const leave = () => void run(api.leaveSession);
+  const floating = useFloating<HTMLElement>("session");
 
   return (
-    <section className={styles.panel} aria-label="Session">
-      <header className={styles.header}>
+    <section ref={floating.ref} className={styles.panel} style={floating.style} aria-label="Session">
+      <header className={styles.header} {...floating.handle}>
         <span className={styles.statusIcon} data-state={sessionState(status)}>
           <Users size={16} />
         </span>

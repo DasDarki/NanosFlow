@@ -57,7 +57,7 @@ fn is_default_port(port: &u16) -> bool {
     *port == DEFAULT_SERVER_PORT
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TestServerSettings {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -74,6 +74,8 @@ pub struct TestServerSettings {
     pub game_mode: Option<String>,
     #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub download_missing: bool,
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub custom_settings: std::collections::BTreeMap<String, toml::Value>,
 }
 
 impl Default for TestServerSettings {
@@ -86,6 +88,7 @@ impl Default for TestServerSettings {
             map: None,
             game_mode: None,
             download_missing: true,
+            custom_settings: std::collections::BTreeMap::new(),
         }
     }
 }
@@ -96,7 +99,7 @@ impl TestServerSettings {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct LocalSettings {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub output_directory: Option<PathBuf>,

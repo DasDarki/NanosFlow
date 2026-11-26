@@ -127,6 +127,7 @@ mod package_tests {
             packages_requirements: Vec::new(),
             assets_requirements: Vec::new(),
             map_asset: None,
+            custom_settings: Vec::new(),
         }
         .write(&package)
         .unwrap();

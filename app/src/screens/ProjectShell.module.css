@@ -135,30 +135,6 @@
   filter: brightness(1.15);
 }
 
-.searchButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 28px;
-  min-width: 220px;
-  padding: 0 8px 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-small);
-  background: var(--surface-2);
-  color: var(--text-faint);
-  font-size: 12.5px;
-}
-
-.searchButton:hover {
-  border-color: var(--border-strong);
-  color: var(--text-muted);
-}
-
-.searchButton kbd {
-  margin-left: auto;
-  font-size: 10.5px;
-}
-
 .runtimeButton {
   display: flex;
   align-items: center;
@@ -259,4 +235,15 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+:global(:root[data-button-labels="false"]) .buttonLabel {
+  display: none;
 }

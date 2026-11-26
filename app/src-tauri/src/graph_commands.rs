@@ -253,6 +253,16 @@ pub async fn update_package_requirements(project_file: PathBuf, package_path: Pa
 }
 
 #[tauri::command]
+pub async fn update_custom_settings(project_file: PathBuf, package_path: PathBuf, settings: Vec<nf_project::CustomSetting>) -> CommandResult<ProjectView> {
+    let project = Project::open(&project_file)?;
+    project.update_custom_settings(&package_path, settings).map_err(|error| match error {
+        nf_project::ProjectError::InvalidOptions { issues } => issues_error("The custom settings need attention", issues),
+        error => titled(error, "The custom settings could not be saved"),
+    })?;
+    reopen(&project_file)
+}
+
+#[tauri::command]
 pub async fn create_graph(
     cache: State<'_, CatalogCache>,
     channel: ApiChannel,

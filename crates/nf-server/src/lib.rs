@@ -188,6 +188,9 @@ pub fn launch_plan(packages: &[PackageSummary], settings: &TestServerSettings) -
     if settings.download_missing {
         arguments.extend(["--vault_download".to_owned(), "missing".to_owned()]);
     }
+    if let Some(custom_settings) = nf_project::command_line_argument(&settings.custom_settings) {
+        arguments.extend(["--custom_settings".to_owned(), custom_settings]);
+    }
     let loaded: Vec<String> = game_mode.iter().chain(&packages).chain(&project_map).cloned().collect();
     LaunchPlan {
         load_order: load_order(requirements, &loaded),
@@ -238,6 +241,7 @@ mod tests {
             package_type,
             version: "1.0.0".to_owned(),
             requirements: Vec::new(),
+            custom_settings: Vec::new(),
             graphs: Vec::new(),
             folders: Vec::new(),
         }
@@ -274,6 +278,7 @@ mod tests {
             &TestServerSettings {
                 game_mode: Some("other-mode".to_owned()),
                 download_missing: false,
+                custom_settings: Default::default(),
                 ..TestServerSettings::default()
             },
         );

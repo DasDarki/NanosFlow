@@ -126,3 +126,12 @@ code,
     transition-duration: 0.01ms !important;
   }
 }
+
+[data-drag-handle] {
+  cursor: grab;
+  touch-action: none;
+}
+
+[data-drag-handle]:active {
+  cursor: grabbing;
+}

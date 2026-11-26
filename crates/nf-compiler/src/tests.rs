@@ -176,6 +176,7 @@ impl TestPackage {
             packages_requirements,
             assets_requirements: Vec::new(),
             map_asset: None,
+            custom_settings: Vec::new(),
         }
         .write(path)
         .unwrap();
@@ -857,6 +858,7 @@ fn builds_into_the_local_output_folder_and_never_overwrites_foreign_folders() {
         packages_requirements: Vec::new(),
         assets_requirements: Vec::new(),
         map_asset: None,
+        custom_settings: Vec::new(),
     }
     .write(&package)
     .unwrap();
@@ -2339,4 +2341,51 @@ fn timelines_animate_tracks_and_finish() {
     for (value, expected) in values.iter().zip([10.0, 20.0, 30.0]) {
         assert!((value - expected).abs() < 0.001, "{log:?}");
     }
+}
+
+#[test]
+fn reads_custom_settings_with_their_defaults() {
+    let package = TestPackage::new();
+    let mut manifest = PackageManifest::read(&package.path).unwrap();
+    manifest.package_type = PackageType::GameMode;
+    manifest.custom_settings = vec![
+        nf_project::CustomSetting {
+            key: "max_props".to_owned(),
+            label: "Max Props".to_owned(),
+            kind: nf_project::CustomSettingKind::Integer,
+            description: String::new(),
+            default: toml::Value::Integer(1000),
+            options: Vec::new(),
+        },
+        nf_project::CustomSetting {
+            key: "welcome".to_owned(),
+            label: String::new(),
+            kind: nf_project::CustomSettingKind::Text,
+            description: String::new(),
+            default: toml::Value::String("have fun".to_owned()),
+            options: Vec::new(),
+        },
+    ];
+    manifest.write(&package.path).unwrap();
+    let main = package.graph(ScriptContext::Server, "Main", GraphKind::EventGraph);
+    let mut nodes = Nodes::default();
+    let load = nodes.add("event/Package/Load");
+    let first = nodes.add("debug/print");
+    let second = nodes.add("debug/print");
+    let props = nodes.add("setting/max_props");
+    let welcome = nodes.add("setting/welcome");
+    nodes.wire(props, "value", first, "value");
+    nodes.wire(welcome, "value", second, "value");
+    nodes.then(load, "then", first);
+    nodes.then(first, "then", second);
+    nodes.save(&main);
+
+    let compiled = package.compile();
+    assert_clean(&compiled);
+    let code = &compiled.files["Server/Main.lua"];
+    assert!(code.contains("custom_setting(\"max_props\", 1000)"), "{code}");
+    assert!(compiled.files["Package.toml"].contains("max_props = { label = \"Max Props\", type = \"integer\", default = 1000 }"));
+
+    let (_, log) = run(&compiled, "Server", "Server = { GetCustomSettings = function() return { welcome = 'hi' } end } fire('Package.Load')");
+    assert_eq!(log, ["1000", "hi"]);
 }

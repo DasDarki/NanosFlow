@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicU16, Ordering};
+
 pub const ARRAY_FIND: &str = "array_find";
 pub const ARRAY_REMOVE_ELEMENT: &str = "array_remove_element";
 pub const ARRAY_CLEAR: &str = "array_clear";
@@ -13,8 +15,29 @@ pub const TIMELINE_VALUE: &str = "timeline_value";
 pub const IMPLEMENTS_INTERFACE: &str = "implements_interface";
 pub const DEBUG_LEAVE: &str = "debug_leave";
 pub const DEBUGGER_PORT: u16 = 47615;
+pub const CUSTOM_SETTING: &str = "custom_setting";
 
-pub const ALL: [&str; 14] = [
+static CONFIGURED_DEBUGGER_PORT: AtomicU16 = AtomicU16::new(DEBUGGER_PORT);
+
+pub fn set_debugger_port(port: u16) {
+    CONFIGURED_DEBUGGER_PORT.store(port, Ordering::Relaxed);
+}
+
+pub fn debugger_port() -> u16 {
+    CONFIGURED_DEBUGGER_PORT.load(Ordering::Relaxed)
+}
+
+pub fn render(name: &str) -> String {
+    let source = source(name);
+    if name == DEBUG_BREAK {
+        source.replace(&format!("127.0.0.1:{DEBUGGER_PORT}"), &format!("127.0.0.1:{}", debugger_port()))
+    } else {
+        source.to_owned()
+    }
+}
+
+pub const ALL: [&str; 15] = [
+    CUSTOM_SETTING,
     TIMELINE_VALUE,
     TIMELINE_RUN,
     IMPLEMENTS_INTERFACE,
@@ -153,6 +176,7 @@ pub fn source(name: &str) -> &'static str {
         ARRAY_FIND => "local function array_find(array, element)\n\tfor index, value in ipairs(array) do\n\t\tif value == element then\n\t\t\treturn index\n\t\tend\n\tend\nend",
         ARRAY_REMOVE_ELEMENT => "local function array_remove_element(array, element)\n\tfor index = #array, 1, -1 do\n\t\tif array[index] == element then\n\t\t\ttable.remove(array, index)\n\t\tend\n\tend\nend",
         LISTENERS_OF => LISTENERS_OF_SOURCE,
+        CUSTOM_SETTING => "local custom_settings\nlocal function custom_setting(key, fallback)\n\tif not custom_settings then\n\t\tcustom_settings = Server.GetCustomSettings() or {}\n\tend\n\tlocal value = custom_settings[key]\n\tif value == nil then\n\t\treturn fallback\n\tend\n\treturn value\nend",
         TIMELINE_RUN => TIMELINE_RUN_SOURCE,
         TIMELINE_VALUE => TIMELINE_VALUE_SOURCE,
         IMPLEMENTS_INTERFACE => "local function implements_interface(target, interface)\n\tlocal kind = type(target)\n\treturn (kind == \"table\" or kind == \"userdata\") and target[interface] == true\nend",

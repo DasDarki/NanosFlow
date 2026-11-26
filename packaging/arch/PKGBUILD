@@ -1,5 +1,5 @@
 pkgname=nanosflow-bin
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Visual scripting for nanos world"
 arch=('x86_64')
@@ -10,7 +10,7 @@ provides=('nanosflow')
 conflicts=('nanosflow')
 options=('!strip' '!debug')
 source=("${url}/releases/download/v${pkgver}/NanosFlow_${pkgver}_amd64.deb")
-sha256sums=('491f4f8b66922fffedd1c002b0cef96a45fdff967acf80742a2073c59160f028')
+sha256sums=('15a7a6bfa51d916ed5767ac9da52b4d6c9f059e0f5fee67ef604698d4af453e9')
 
 package() {
     bsdtar -xf data.tar.gz -C "${pkgdir}"

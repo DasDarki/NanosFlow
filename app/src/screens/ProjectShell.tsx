@@ -142,9 +142,20 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
   const pendingConsoleRef = useRef<string[]>([]);
   const consoleTimerRef = useRef<number | null>(null);
 
+  const [apiRevision, setApiRevision] = useState(0);
+
+  useEffect(() => {
+    const subscription = listen("api-updated", () => {
+      setApiRevision((value) => value + 1);
+      setScopeRevision((value) => value + 1);
+    });
+    return () => {
+      void subscription.then((unlisten) => unlisten());
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
-    setCatalog(null);
     setCatalogError(null);
     api
       .nodeCatalog(project.apiChannel)
@@ -161,7 +172,7 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
     return () => {
       cancelled = true;
     };
-  }, [project.apiChannel]);
+  }, [project.apiChannel, apiRevision]);
 
   const selection = useMemo(() => {
     for (const pkg of project.packages) {

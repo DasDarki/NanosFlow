@@ -393,6 +393,17 @@ export interface Preferences {
   nodeList: NodeListLayout;
   minimap: boolean;
   debuggerPort: number;
+  apiAutoUpdate: boolean;
+}
+
+export interface ApiStatus {
+  revision: string;
+  bundledRevision: string;
+  downloaded: boolean;
+  lastCheck: number | null;
+  checking: boolean;
+  error: string | null;
+  repository: string;
 }
 
 export interface McpActivity {

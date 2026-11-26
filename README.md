@@ -10,7 +10,7 @@ NanosFlow lets you build nanos world packages from node graphs instead of hand w
 
 ## Features
 
-- Node graph editor for server, client and shared scripts, generated from the official nanos world API
+- Node graph editor for server, client and shared scripts, generated from the official nanos world API and kept up to date without app updates
 - Functions, events, variables, dispatchers and interfaces like in Blueprints
 - Compiles to readable Lua 5.4 and runs a local test server with one click
 - Version control friendly project format with graph diff and merge
@@ -43,6 +43,8 @@ cd app
 pnpm install
 pnpm tauri dev
 ```
+
+The first build downloads the nanos world API definitions from [nanos-world/api](https://github.com/nanos-world/api) into `resources/api`, so it needs internet once. Set `NANOSFLOW_API_REVISION` to a commit id to build against a specific version. The app ships this snapshot and later downloads newer ones on its own.
 
 Run the tests with `cargo test --workspace`.
 

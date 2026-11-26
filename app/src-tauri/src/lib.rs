@@ -1,3 +1,4 @@
+mod api_updates;
 mod commands;
 mod debugger;
 #[cfg(target_os = "linux")]
@@ -50,6 +51,8 @@ pub fn run() {
             let preferences = preferences::load(app.handle());
             app.manage(debugger::DebuggerState::start(app.handle(), preferences.debugger_port));
             app.manage(preferences::PreferencesState::new(preferences));
+            api_updates::restore(app.handle());
+            api_updates::check_in_background(app.handle());
             mcp::start(app.handle());
             Ok(())
         })
@@ -57,6 +60,7 @@ pub fn run() {
         .manage(test_server::TestServerState::default())
         .manage(session::SessionState::default())
         .manage(mcp::McpState::default())
+        .manage(api_updates::ApiUpdateState::default())
         .manage(LaunchState {
             pending_project: Mutex::new(launch_project),
         })
@@ -120,6 +124,9 @@ pub fn run() {
             session::leave_session,
             session::update_presence,
             session::join_session_game,
+            api_updates::api_status,
+            api_updates::check_api_updates,
+            api_updates::use_bundled_api,
             preferences::preferences,
             preferences::update_preferences,
             graph_commands::update_custom_settings,

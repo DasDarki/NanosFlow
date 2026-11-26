@@ -84,7 +84,7 @@ export function Welcome({
           </div>
           <div className={styles.footerMeta}>
             <span>v{appInfo?.version ?? "-"}</span>
-            <span>nanos world API {appInfo?.apiRevision ?? "-"}</span>
+            <span>nanos world API {appInfo?.apiRevision.slice(0, 7) ?? "-"}</span>
           </div>
         </footer>
       </aside>

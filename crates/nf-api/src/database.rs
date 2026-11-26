@@ -69,13 +69,28 @@ fn parse<T: DeserializeOwned>(source: &dyn ApiSource, relative_path: &Path) -> R
 }
 
 impl ApiDatabase {
-    pub fn bundled(channel: ApiChannel) -> Result<ApiDatabase, ApiError> {
-        let revision = BUNDLED_API
-            .get_file("REVISION")
+    pub fn bundled_revision() -> String {
+        BUNDLED_API
+            .get_file(crate::snapshot::REVISION_FILE)
             .and_then(|file| file.contents_utf8())
             .map(|content| content.trim().to_owned())
-            .unwrap_or_else(|| "unknown".to_owned());
-        Self::load(&BundledSource { channel }, channel, revision)
+            .unwrap_or_else(|| "unknown".to_owned())
+    }
+
+    pub fn bundled(channel: ApiChannel) -> Result<ApiDatabase, ApiError> {
+        Self::load(&BundledSource { channel }, channel, Self::bundled_revision())
+    }
+
+    pub fn from_snapshot(root: &Path, channel: ApiChannel) -> Result<ApiDatabase, ApiError> {
+        let revision_path = root.join(crate::snapshot::REVISION_FILE);
+        let revision = std::fs::read_to_string(&revision_path)
+            .map_err(|source| ApiError::Io { path: revision_path, source })?
+            .trim()
+            .to_owned();
+        let source = DirectorySource {
+            root: root.join(channel.directory_name()),
+        };
+        Self::load(&source, channel, revision)
     }
 
     pub fn from_directory(

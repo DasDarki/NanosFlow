@@ -101,9 +101,7 @@ fn default_location(app: &AppHandle) -> PathBuf {
 
 #[tauri::command]
 pub fn app_info(app: AppHandle) -> AppInfo {
-    let api_revision = nf_api::ApiDatabase::bundled(ApiChannel::Stable)
-        .map(|database| database.revision().to_owned())
-        .unwrap_or_else(|_| "unavailable".to_owned());
+    let api_revision = app.state::<crate::graph_commands::CatalogCache>().revision();
     AppInfo {
         version: app.package_info().version.to_string(),
         api_revision,

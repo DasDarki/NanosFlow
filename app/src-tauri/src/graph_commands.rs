@@ -22,14 +22,41 @@ pub(crate) struct CachedCatalog {
 #[derive(Default)]
 pub struct CatalogCache {
     entries: Mutex<HashMap<ApiChannel, Arc<CachedCatalog>>>,
+    snapshot: Mutex<Option<PathBuf>>,
 }
 
 impl CatalogCache {
+    pub(crate) fn use_snapshot(&self, snapshot: Option<PathBuf>) {
+        if let Ok(mut current) = self.snapshot.lock() {
+            *current = snapshot;
+        }
+        if let Ok(mut entries) = self.entries.lock() {
+            entries.clear();
+        }
+    }
+
+    pub(crate) fn snapshot(&self) -> Option<PathBuf> {
+        self.snapshot.lock().ok().and_then(|snapshot| snapshot.clone())
+    }
+
+    fn database(&self, channel: ApiChannel) -> Result<ApiDatabase, nf_api::ApiError> {
+        match self.snapshot() {
+            Some(root) => ApiDatabase::from_snapshot(&root, channel).or_else(|_| ApiDatabase::bundled(channel)),
+            None => ApiDatabase::bundled(channel),
+        }
+    }
+
+    pub(crate) fn revision(&self) -> String {
+        self.database(ApiChannel::Stable)
+            .map(|database| database.revision().to_owned())
+            .unwrap_or_else(|_| ApiDatabase::bundled_revision())
+    }
+
     pub(crate) fn get(&self, channel: ApiChannel) -> CommandResult<Arc<CachedCatalog>> {
         if let Some(cached) = self.entries.lock().ok().and_then(|entries| entries.get(&channel).cloned()) {
             return Ok(cached);
         }
-        let database = ApiDatabase::bundled(channel).map_err(|error| {
+        let database = self.database(channel).map_err(|error| {
             CommandError::new(
                 "API data unavailable",
                 format!("The {} API could not be loaded: {error}", channel.display_name()),

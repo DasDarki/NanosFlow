@@ -26,6 +26,7 @@ pub struct Preferences {
     pub node_list: NodeListLayout,
     pub minimap: bool,
     pub debugger_port: u16,
+    pub api_auto_update: bool,
 }
 
 impl Default for Preferences {
@@ -36,6 +37,7 @@ impl Default for Preferences {
             node_list: NodeListLayout::Flat,
             minimap: true,
             debugger_port: nf_compiler::DEBUGGER_PORT,
+            api_auto_update: true,
         }
     }
 }
@@ -67,6 +69,10 @@ impl PreferencesState {
         }
     }
 
+    pub fn snapshot(&self) -> Preferences {
+        self.lock().clone()
+    }
+
     fn lock(&self) -> MutexGuard<'_, Preferences> {
         self.current.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
@@ -96,7 +102,11 @@ pub fn update_preferences(
     let text = toml::to_string(&cleaned).map_err(|error| CommandError::new("Settings not saved", error.to_string()))?;
     std::fs::write(&target, text).map_err(|error| CommandError::new("Settings not saved", error.to_string()))?;
     debugger.restart(&app, cleaned.debugger_port);
+    let enabled_updates = cleaned.api_auto_update && !state.lock().api_auto_update;
     *state.lock() = cleaned.clone();
+    if enabled_updates {
+        crate::api_updates::check_in_background(&app);
+    }
     let _ = app.emit(PREFERENCES_EVENT, &cleaned);
     Ok(cleaned)
 }

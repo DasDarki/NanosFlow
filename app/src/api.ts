@@ -42,6 +42,7 @@ import type {
   ProjectView,
   RecentProject,
   ScriptContext,
+  ApiStatus,
   CustomSetting,
   EditorContext,
   Preferences,
@@ -174,6 +175,9 @@ export const api = {
   leaveSession: () => invoke<SessionStatus>("leave_session"),
   updatePresence: (presence: PresenceUpdate) => invoke<void>("update_presence", { presence }),
   joinSessionGame: () => invoke<string>("join_session_game"),
+  apiStatus: () => invoke<ApiStatus>("api_status"),
+  checkApiUpdates: () => invoke<ApiStatus>("check_api_updates"),
+  useBundledApi: () => invoke<ApiStatus>("use_bundled_api"),
   preferences: () => invoke<Preferences>("preferences"),
   updatePreferences: (preferences: Preferences) => invoke<Preferences>("update_preferences", { preferences }),
   updateCustomSettings: (projectFile: string, packagePath: string, settings: CustomSetting[]) =>

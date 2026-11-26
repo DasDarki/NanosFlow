@@ -1,17 +1,18 @@
-import { ArrowLeft, Bot, Bug, Keyboard, LayoutGrid, Monitor } from "lucide-react";
+import { ArrowLeft, BookMarked, Bot, Bug, Keyboard, LayoutGrid, Monitor, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { api } from "../api";
+import { api, toCommandError } from "../api";
 import { SHORTCUT_GROUPS } from "../commands/shortcuts";
 import { Button } from "../components/Button";
 import { Segmented, ToggleRow } from "../components/Choice";
 import { TextInput } from "../components/Field";
 import helpStyles from "../help/HelpPage.module.css";
 import pageStyles from "../pages/Page.module.css";
-import type { DebuggerStatus, McpStatus, NodeListLayout } from "../types";
+import { useToasts } from "../components/Toasts";
+import type { ApiStatus, DebuggerStatus, McpStatus, NodeListLayout } from "../types";
 import { AgentSettings } from "./AgentSettings";
 import { usePreferences } from "./preferences";
 
-export type SettingsSection = "interface" | "editor" | "agents" | "debugging" | "shortcuts";
+export type SettingsSection = "interface" | "editor" | "api" | "agents" | "debugging" | "shortcuts";
 
 interface SettingsPageProps {
   section: SettingsSection;
@@ -25,6 +26,7 @@ interface SettingsPageProps {
 const SECTIONS: { id: SettingsSection; title: string; description: string; icon: ReactNode }[] = [
   { id: "interface", title: "Interface", description: "Size of the interface and how the title bar looks.", icon: <Monitor size={15} /> },
   { id: "editor", title: "Editor", description: "How the node list is sorted and what the graph editor shows.", icon: <LayoutGrid size={15} /> },
+  { id: "api", title: "nanos world API", description: "Where the node list gets its functions, classes and events from.", icon: <BookMarked size={15} /> },
   { id: "agents", title: "AI agents", description: "Let AI agents work in NanosFlow and choose what they may do.", icon: <Bot size={15} /> },
   { id: "debugging", title: "Debugging", description: "The port breakpoints use to talk to NanosFlow.", icon: <Bug size={15} /> },
   { id: "shortcuts", title: "Keyboard shortcuts", description: "Every shortcut at a glance.", icon: <Keyboard size={15} /> },
@@ -94,6 +96,67 @@ function EditorSection() {
         checked={preferences.minimap}
         onChange={(minimap) => void update({ minimap })}
       />
+    </div>
+  );
+}
+
+function ApiSection() {
+  const { preferences, update } = usePreferences();
+  const { reportError } = useToasts();
+  const [status, setStatus] = useState<ApiStatus | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    void api
+      .apiStatus()
+      .then(setStatus)
+      .catch(() => undefined);
+  }, []);
+
+  const run = async (action: () => Promise<ApiStatus>) => {
+    setChecking(true);
+    try {
+      setStatus(await action());
+    } catch (error) {
+      reportError(toCommandError(error));
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const short = (revision: string) => revision.slice(0, 7);
+  const checked = status?.lastCheck ? new Date(status.lastCheck * 1000).toLocaleString() : "never";
+
+  return (
+    <div className={pageStyles.group}>
+      <Row
+        title={status ? `Using ${short(status.revision)}` : "Loading..."}
+        description={
+          status
+            ? status.downloaded
+              ? `Downloaded from ${status.repository}. The version shipped with this app is ${short(status.bundledRevision)}. Last check: ${checked}.`
+              : `The version shipped with this app. Last check: ${checked}.`
+            : ""
+        }
+      >
+        <Button size="small" variant="secondary" icon={<RefreshCw size={13} />} busy={checking || status?.checking} onClick={() => void run(api.checkApiUpdates)}>
+          Check now
+        </Button>
+      </Row>
+      {status?.error && <p className={pageStyles.note}>{status.error}</p>}
+      <ToggleRow
+        title="Keep the API up to date"
+        description="Checks GitHub every few hours for a newer nanos world API and switches the node list over without a NanosFlow update."
+        checked={preferences.apiAutoUpdate}
+        onChange={(apiAutoUpdate) => void update({ apiAutoUpdate })}
+      />
+      {status?.downloaded && (
+        <Row title="Go back to the shipped API" description="Use the version that came with this app, for example when a new API breaks something.">
+          <Button size="small" variant="ghost" busy={checking} onClick={() => void run(api.useBundledApi)}>
+            Use shipped version
+          </Button>
+        </Row>
+      )}
     </div>
   );
 }
@@ -217,6 +280,7 @@ export function SettingsPage({ section, onSectionChange, mcp, projectFile, onOpe
           </header>
           {current.id === "interface" && <InterfaceSection />}
           {current.id === "editor" && <EditorSection />}
+          {current.id === "api" && <ApiSection />}
           {current.id === "agents" && <AgentSettings status={mcp} projectFile={projectFile} />}
           {current.id === "debugging" && <DebuggingSection onOpenHelp={onOpenHelp} />}
           {current.id === "shortcuts" && <ShortcutsSection />}

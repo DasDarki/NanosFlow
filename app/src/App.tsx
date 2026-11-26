@@ -27,7 +27,7 @@ function isProjectFile(path: string): boolean {
 }
 
 export function App() {
-  const { reportError } = useToasts();
+  const { notify, reportError } = useToasts();
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
   const [project, setProject] = useState<ProjectView | null>(null);
@@ -44,6 +44,20 @@ export function App() {
   const openSettings = useCallback((section: SettingsSection = "interface") => setPage({ kind: "settings", section }), []);
   const openHelp = useCallback((topic = "getting-started") => setPage({ kind: "help", topic }), []);
   const closePage = useCallback(() => setPage(null), []);
+
+  useEffect(() => {
+    const subscription = listen<{ revision: string; previous: string }>("api-updated", ({ payload }) => {
+      void api.appInfo().then(setAppInfo);
+      notify({
+        kind: "info",
+        title: "nanos world API updated",
+        message: `The node list now uses the API from ${payload.revision.slice(0, 7)}. New functions and fixes are available right away.`,
+      });
+    });
+    return () => {
+      void subscription.then((unlisten) => unlisten());
+    };
+  }, [notify]);
 
   const refreshRecent = useCallback(async () => {
     setRecentProjects(await api.listRecentProjects().catch(() => []));
@@ -193,6 +207,7 @@ export function App() {
     { id: "app.settings.interface", title: "Settings: Interface size and title bar", group: "App", keywords: "zoom scale", run: () => openSettings("interface") },
     { id: "app.settings.editor", title: "Settings: Node list and minimap", group: "App", keywords: "categorized flat sort", run: () => openSettings("editor") },
     { id: "app.settings.agents", title: "Settings: AI agents", group: "App", keywords: "mcp claude cursor codex", run: () => openSettings("agents") },
+    { id: "app.settings.api", title: "Settings: nanos world API updates", group: "App", keywords: "catalog update revision github", run: () => openSettings("api") },
     { id: "app.settings.debugging", title: "Settings: Debugger port", group: "App", keywords: "breakpoint port", run: () => openSettings("debugging") },
     { id: "app.shortcuts", title: "Show keyboard shortcuts", group: "Help", keywords: "hotkeys keys", run: () => openSettings("shortcuts") },
     { id: "app.help", title: "Open the help", group: "Help", shortcut: "F1", run: () => openHelp() },

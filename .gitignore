@@ -2,3 +2,5 @@
 /app/src-tauri/gen/schemas/
 node_modules/
 /app/dist/
+/resources/api/
+/resources/.api-download-*

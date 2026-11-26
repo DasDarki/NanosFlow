@@ -10,6 +10,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   nodeList: "flat",
   minimap: true,
   debuggerPort: 47615,
+  apiAutoUpdate: true,
 };
 
 interface PreferencesApi {

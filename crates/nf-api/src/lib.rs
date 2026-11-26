@@ -2,6 +2,7 @@ mod channel;
 mod database;
 mod error;
 mod model;
+pub mod snapshot;
 mod type_expr;
 
 pub use channel::ApiChannel;

@@ -42,6 +42,12 @@ import type {
   ProjectView,
   RecentProject,
   ScriptContext,
+  EditorContext,
+  McpClientKind,
+  McpClientSetup,
+  McpInstallScope,
+  McpSettings,
+  McpStatus,
 } from "./types";
 
 export const OPEN_PROJECT_EVENT = "open-project-requested";
@@ -166,6 +172,12 @@ export const api = {
   leaveSession: () => invoke<SessionStatus>("leave_session"),
   updatePresence: (presence: PresenceUpdate) => invoke<void>("update_presence", { presence }),
   joinSessionGame: () => invoke<string>("join_session_game"),
+  mcpStatus: () => invoke<McpStatus>("mcp_status"),
+  updateMcpSettings: (settings: McpSettings) => invoke<McpStatus>("update_mcp_settings", { settings }),
+  mcpClientSetups: (scope: McpInstallScope, projectFile: string | null) => invoke<McpClientSetup[]>("mcp_client_setups", { scope, projectFile }),
+  installMcpClient: (kind: McpClientKind, scope: McpInstallScope, projectFile: string | null) =>
+    invoke<string>("install_mcp_client", { kind, scope, projectFile }),
+  reportEditorContext: (context: EditorContext | null) => invoke<void>("report_editor_context", { context }),
   checkCollapse: (channel: ApiChannel, packagePath: string, graphPath: string, selection: string[]) =>
     invoke<CollapseError | null>("check_collapse", { channel, packagePath, graphPath, selection }),
   collapseToFunction: (channel: ApiChannel, projectFile: string, packagePath: string, graphPath: string, selection: string[], name: string) =>

@@ -356,3 +356,57 @@ export interface SessionFilesMessage {
   paths: string[];
   author: string;
 }
+
+export interface McpSettings {
+  enabled: boolean;
+  port: number;
+}
+
+export interface McpActivity {
+  id: number;
+  client: string;
+  tool: string;
+  summary: string;
+  at: number;
+}
+
+export interface McpStatus {
+  settings: McpSettings;
+  running: boolean;
+  url: string;
+  error: string | null;
+  clients: { name: string; lastSeen: number }[];
+  activity: McpActivity[];
+}
+
+export type McpClientKind = "claude-code" | "cursor" | "vs-code" | "codex" | "gemini-cli" | "windsurf";
+export type McpInstallScope = "user" | "project";
+
+export interface McpClientSetup {
+  kind: McpClientKind;
+  name: string;
+  detected: boolean;
+  state: "configured" | "outdated" | "missing";
+  supportsProjectScope: boolean;
+  oneClick: string;
+  snippets: { label: string; language: string; text: string }[];
+}
+
+export interface EditorContext {
+  projectFile: string;
+  graph: string | null;
+}
+
+export interface AgentFilesMessage {
+  projectRoot: string;
+  paths: string[];
+  agent: string;
+  graph: string | null;
+  nodes: string[];
+  focus: [number, number] | null;
+}
+
+export interface AgentOpenMessage {
+  graphId: string;
+  node: string | null;
+}

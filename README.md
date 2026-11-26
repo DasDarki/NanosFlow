@@ -15,6 +15,7 @@ NanosFlow lets you build nanos world packages from node graphs instead of hand w
 - Compiles to readable Lua 5.4 and runs a local test server with one click
 - Version control friendly project format with graph diff and merge
 - Sessions: host a project, edit it together with live cursors and play on the host's test server through a relay
+- AI agents: a local MCP server lets Claude Code, Cursor, VS Code, Codex, Gemini CLI or Windsurf read and edit your graphs live, set up with one click in the settings
 - Automatic updates
 
 ## Download

@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import {
   Activity,
+  Bot,
   ChevronLeft,
   CircleAlert,
   CircleCheck,
@@ -28,7 +29,7 @@ import { DefinitionEditor } from "../graph/DefinitionEditor";
 import { InterfaceEditor } from "../graph/InterfaceEditor";
 import { GraphEditor, normalizePath, type FocusRequest, type RemoteChange, type SidePanel } from "../graph/GraphEditor";
 import { peerColor, type RemotePeer } from "../graph/RemoteCursors";
-import type { BreakpointHit, BuildProblem, DebuggerMessage, LogEntry, ResumeMode, StackFrame, RuntimeMark, SearchHit, CommandError, EntryLocation, GraphKind, GraphSummary, PackageSummary, Presence, ProjectView, SessionFilesMessage, SessionStatus, TestServerMessage, TestServerStatus } from "../types";
+import type { BreakpointHit, BuildProblem, DebuggerMessage, LogEntry, ResumeMode, StackFrame, RuntimeMark, SearchHit, CommandError, EntryLocation, GraphKind, GraphSummary, PackageSummary, AgentFilesMessage, AgentOpenMessage, McpStatus, Presence, ProjectView, SessionFilesMessage, SessionStatus, TestServerMessage, TestServerStatus } from "../types";
 import { BuildPanel, type BuildState } from "./BuildPanel";
 import { ProjectSettings } from "./ProjectSettings";
 import { EntryDialog, type EntryDialogMode } from "./EntryDialog";
@@ -37,6 +38,7 @@ import { SearchPanel, type SearchRequest } from "./SearchPanel";
 import { RuntimePanel } from "./RuntimePanel";
 import { DebugBar } from "./DebugBar";
 import { sessionState } from "../session/SessionPanel";
+import { agentActive } from "../settings/useMcp";
 import { TestServerPanel, type ConsoleLine, type InstallState, type ServerTab } from "./TestServerPanel";
 import styles from "./ProjectShell.module.css";
 
@@ -46,6 +48,8 @@ interface ProjectShellProps {
   session: SessionStatus | null;
   sessionOpen: boolean;
   onToggleSession: () => void;
+  mcp: McpStatus | null;
+  onOpenSettings: () => void;
   onClose: () => void;
 }
 
@@ -81,8 +85,19 @@ const DEFINITION_EDITORS: string[] = ["event", "struct", "enum", "dispatcher"];
 const SEPARATE_EDITORS: string[] = [...DEFINITION_EDITORS, "interface"];
 const PRESENCE_HEARTBEAT = 3000;
 const PRESENCE_TIMEOUT = 12000;
+const AGENT_CURSOR_MILLISECONDS = 8000;
+const AGENT_PEER = -1;
+const AGENT_COLOR = "#c084fc";
 
-export function ProjectShell({ project, onProjectChange, session, sessionOpen, onToggleSession, onClose }: ProjectShellProps) {
+interface AgentCursor {
+  name: string;
+  graph: string;
+  x: number;
+  y: number;
+  selection: string[];
+}
+
+export function ProjectShell({ project, onProjectChange, session, sessionOpen, onToggleSession, mcp, onOpenSettings, onClose }: ProjectShellProps) {
   const { notify, reportError } = useToasts();
   const [selectedGraphId, setSelectedGraphId] = useState<string | null>(
     () => project.packages[0]?.graphs.find((graph) => graph.context === "server")?.id ?? project.packages[0]?.graphs[0]?.id ?? null,
@@ -97,6 +112,9 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
   const [editorRevision, setEditorRevision] = useState(0);
   const [scopeRevision, setScopeRevision] = useState(0);
   const [remoteChange, setRemoteChange] = useState<RemoteChange | null>(null);
+  const remoteRevisionRef = useRef(0);
+  const [agentCursor, setAgentCursor] = useState<AgentCursor | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [presences, setPresences] = useState<Map<number, Presence & { seen: number }>>(new Map());
   const lastPresenceRef = useRef<{ graph: string | null; x: number; y: number; selection: string[] } | null>(null);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
@@ -174,23 +192,16 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
   const selectedGraphRef = useRef<{ path: string; kind: string } | null>(null);
   selectedGraphRef.current = selection ? { path: normalizePath(selection.graph.path), kind: selection.graph.kind } : null;
 
-  useEffect(() => {
-    if (!sharedProject) {
-      return;
-    }
-    let revision = 0;
-    const subscription = listen<SessionFilesMessage>("session-files", ({ payload }) => {
-      if (normalizePath(payload.projectRoot) !== projectRoot) {
-        return;
-      }
-      const paths = payload.paths.map((path) => `${projectRoot}/${path}`);
-      revision += 1;
-      setRemoteChange({ revision, paths });
+  const applyExternalChange = useCallback(
+    (relativePaths: string[], undoable: boolean) => {
+      const paths = relativePaths.map((path) => `${projectRoot}/${path}`);
+      remoteRevisionRef.current += 1;
+      setRemoteChange({ revision: remoteRevisionRef.current, paths, undoable });
       const selected = selectedGraphRef.current;
       if (selected && SEPARATE_EDITORS.includes(selected.kind) && paths.some((path) => path.startsWith(`${selected.path}/`))) {
         setEditorRevision((value) => value + 1);
       }
-      if (payload.paths.some((path) => !path.includes("/nodes/"))) {
+      if (relativePaths.some((path) => !path.includes("/nodes/"))) {
         api
           .openProject(project.projectFile)
           .then((refreshed) => {
@@ -199,11 +210,58 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
           })
           .catch(() => undefined);
       }
+    },
+    [projectRoot, project.projectFile, onProjectChange],
+  );
+
+  useEffect(() => {
+    if (!sharedProject) {
+      return;
+    }
+    const subscription = listen<SessionFilesMessage>("session-files", ({ payload }) => {
+      if (normalizePath(payload.projectRoot) === projectRoot) {
+        applyExternalChange(payload.paths, false);
+      }
     });
     return () => {
       void subscription.then((unlisten) => unlisten());
     };
-  }, [sharedProject, projectRoot, project.projectFile, onProjectChange]);
+  }, [sharedProject, projectRoot, applyExternalChange]);
+
+  useEffect(() => {
+    const files = listen<AgentFilesMessage>("agent-files", ({ payload }) => {
+      if (normalizePath(payload.projectRoot) !== projectRoot) {
+        return;
+      }
+      applyExternalChange(payload.paths, true);
+      if (payload.graph && payload.focus) {
+        setAgentCursor({ name: payload.agent, graph: payload.graph, x: payload.focus[0], y: payload.focus[1], selection: payload.nodes });
+      }
+    });
+    const opens = listen<AgentOpenMessage>("agent-open-graph", ({ payload }) => {
+      setSelectedGraphId(payload.graphId);
+      if (payload.node) {
+        setFocusRequest({ graphId: payload.graphId, node: payload.node, token: Date.now() });
+      }
+    });
+    return () => {
+      void files.then((unlisten) => unlisten());
+      void opens.then((unlisten) => unlisten());
+    };
+  }, [projectRoot, applyExternalChange]);
+
+  useEffect(() => {
+    if (!agentCursor) {
+      return;
+    }
+    const timer = window.setTimeout(() => setAgentCursor(null), AGENT_CURSOR_MILLISECONDS);
+    return () => window.clearTimeout(timer);
+  }, [agentCursor]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!sessionLive) {
@@ -251,6 +309,22 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
         })),
     [presences, currentGraph],
   );
+  const editorPeers = useMemo<RemotePeer[]>(() => {
+    const visible = sharedProject ? peers : NO_PEERS;
+    if (!agentCursor || agentCursor.graph !== currentGraph) {
+      return visible;
+    }
+    return [
+      ...visible,
+      { peer: AGENT_PEER, name: agentCursor.name, color: AGENT_COLOR, x: agentCursor.x, y: agentCursor.y, selection: agentCursor.selection },
+    ];
+  }, [sharedProject, peers, agentCursor, currentGraph]);
+
+  useEffect(() => {
+    void api.reportEditorContext({ projectFile: project.projectFile, graph: selection?.graph.path ?? null }).catch(() => undefined);
+  }, [project.projectFile, selection?.graph.path]);
+
+  useEffect(() => () => void api.reportEditorContext(null).catch(() => undefined), []);
 
   const reportPresence = useCallback(
     (presence: { x: number; y: number; selection: string[] }) => {
@@ -805,8 +879,8 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
         onFindUsages={findUsages}
         runtime={markedRuntime}
         scopeRevision={scopeRevision}
-        remoteChange={sharedProject ? remoteChange : null}
-        peers={sharedProject ? peers : NO_PEERS}
+        remoteChange={remoteChange}
+        peers={editorPeers}
         onPresence={sharedProject ? reportPresence : null}
       />
     );
@@ -856,6 +930,19 @@ export function ProjectShell({ project, onProjectChange, session, sessionOpen, o
           ) : (
             <span className={styles.serverDot} data-state={{ idle: "idle", busy: "busy", live: "running" }[sessionState(session)]} />
           )}
+        </button>
+        <button
+          type="button"
+          className={styles.runtimeButton}
+          onClick={onOpenSettings}
+          title={mcp?.settings.enabled ? `AI agents can control NanosFlow through ${mcp.url}` : "Let AI agents like Claude Code control NanosFlow"}
+        >
+          <Bot size={14} />
+          Agents
+          <span
+            className={styles.serverDot}
+            data-state={mcp?.error ? "busy" : agentActive(mcp, now) ? "running" : "idle"}
+          />
         </button>
         <button type="button" className={styles.searchButton} onClick={() => void openSearch({ mode: "text", query: "" })} title="Search the whole project">
           <Search size={14} />

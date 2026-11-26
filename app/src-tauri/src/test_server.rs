@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::UdpSocket;
 use std::path::{Path, PathBuf};
@@ -19,6 +20,7 @@ use crate::graph_commands::CatalogCache;
 pub const TEST_SERVER_EVENT: &str = "test-server";
 const STOP_TIMEOUT: Duration = Duration::from_secs(5);
 const LOCAL_ADDRESS: &str = "127.0.0.1";
+const RECENT_OUTPUT_LINES: usize = 500;
 
 #[derive(Clone, Serialize)]
 #[serde(tag = "type", rename_all = "kebab-case", rename_all_fields = "camelCase")]
@@ -47,6 +49,7 @@ struct Inner {
 #[derive(Default)]
 pub struct TestServerState {
     inner: Arc<Mutex<Inner>>,
+    recent_output: Mutex<VecDeque<String>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -128,6 +131,15 @@ impl TestServerState {
         lock(&self.inner)
     }
 
+    pub fn is_running(&self) -> bool {
+        self.lock().running.is_some()
+    }
+
+    pub fn recent_output(&self, count: usize) -> Vec<String> {
+        let recent = self.recent_output.lock().map(|recent| recent.clone()).unwrap_or_default();
+        recent.into_iter().rev().take(count).collect::<Vec<_>>().into_iter().rev().collect()
+    }
+
     pub fn shutdown(&self) {
         let running = self.lock().running.take();
         if let Some(running) = running {
@@ -141,6 +153,14 @@ fn lock(inner: &Mutex<Inner>) -> MutexGuard<'_, Inner> {
 }
 
 fn emit(app: &AppHandle, message: ServerMessage) {
+    if let ServerMessage::Output { line } = &message
+        && let Ok(mut recent) = app.state::<TestServerState>().recent_output.lock()
+    {
+        if recent.len() == RECENT_OUTPUT_LINES {
+            recent.pop_front();
+        }
+        recent.push_back(line.clone());
+    }
     let _ = app.emit(TEST_SERVER_EVENT, message);
 }
 

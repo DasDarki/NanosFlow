@@ -1,5 +1,5 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { FolderOpen, FolderSearch, Plus, Search, Sparkles, Users, X } from "lucide-react";
+import { FolderOpen, FolderSearch, Plus, Search, Settings, Sparkles, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { TextInput } from "../components/Field";
@@ -17,6 +17,7 @@ interface WelcomeProps {
   onRemoveRecent: (path: string) => void;
   session: SessionStatus | null;
   onOpenSession: () => void;
+  onOpenSettings: () => void;
 }
 
 export function Welcome({
@@ -28,6 +29,7 @@ export function Welcome({
   onRemoveRecent,
   session,
   onOpenSession,
+  onOpenSettings,
 }: WelcomeProps) {
   const [filter, setFilter] = useState("");
 
@@ -61,6 +63,9 @@ export function Welcome({
           <Button variant="ghost" size="large" icon={<Users size={18} />} onClick={onOpenSession}>
             {sessionState(session) === "idle" ? "Join a session" : "Current session"}
             {sessionState(session) !== "idle" && <span className={styles.sessionDot} data-state={sessionState(session)} />}
+          </Button>
+          <Button variant="ghost" size="large" icon={<Settings size={18} />} onClick={onOpenSettings}>
+            Settings and AI agents
           </Button>
           <p className={styles.dropHint}>or drop a .nfproj file anywhere on this window</p>
         </div>

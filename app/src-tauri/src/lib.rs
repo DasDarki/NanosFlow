@@ -5,6 +5,7 @@ mod desktop_integration;
 mod error;
 mod graph_commands;
 mod launch;
+mod mcp;
 mod recent;
 mod session;
 mod test_server;
@@ -46,11 +47,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             app.manage(debugger::DebuggerState::start(app.handle()));
+            mcp::start(app.handle());
             Ok(())
         })
         .manage(CatalogCache::default())
         .manage(test_server::TestServerState::default())
         .manage(session::SessionState::default())
+        .manage(mcp::McpState::default())
         .manage(LaunchState {
             pending_project: Mutex::new(launch_project),
         })
@@ -114,6 +117,11 @@ pub fn run() {
             session::leave_session,
             session::update_presence,
             session::join_session_game,
+            mcp::mcp_status,
+            mcp::update_mcp_settings,
+            mcp::mcp_client_setups,
+            mcp::install_mcp_client,
+            mcp::report_editor_context,
         ])
         .build(tauri::generate_context!())
         .expect("NanosFlow failed to start")
@@ -121,6 +129,7 @@ pub fn run() {
             if let tauri::RunEvent::Exit = event {
                 app.state::<test_server::TestServerState>().shutdown();
                 app.state::<session::SessionState>().shutdown();
+                app.state::<mcp::McpState>().shutdown();
             }
         });
 }

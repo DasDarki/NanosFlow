@@ -136,6 +136,12 @@ impl<'a> GraphScope<'a> {
         self.extras.get(id).or_else(|| self.catalog.get(id))
     }
 
+    pub fn definitions(&self) -> impl Iterator<Item = &NodeDefinition> {
+        self.extras
+            .values()
+            .chain(self.catalog.definitions().iter().filter(|definition| !self.extras.contains_key(&definition.id)))
+    }
+
     pub fn catalog(&self) -> &NodeCatalog {
         self.catalog
     }

@@ -221,6 +221,7 @@ export interface GraphEditorProps {
 export interface RemoteChange {
   revision: number;
   paths: string[];
+  undoable?: boolean;
 }
 
 const PRESENCE_INTERVAL = 50;
@@ -1451,7 +1452,7 @@ function Editor({
   );
 
   const mergeRemoteNodes = useCallback(
-    (remoteDocuments: NodeDocument[]) => {
+    (remoteDocuments: NodeDocument[], undoable: boolean) => {
       const toFlow = (documents: NodeDocument[]) => {
         const converted = documentsToFlow(documents, catalog);
         return { nodes: withEntryProtection(converted.nodes), edges: converted.edges };
@@ -1478,8 +1479,17 @@ function Editor({
         return { nodes: patched.nodes.map((node) => (selected.has(node.id) ? { ...node, selected: true } : node)), edges: patched.edges };
       };
       const history = historyRef.current;
-      history.past = history.past.map(patch);
-      history.future = history.future.map(patch);
+      if (undoable) {
+        history.past.push({ nodes: nodesRef.current, edges: edgesRef.current });
+        if (history.past.length > HISTORY_LIMIT) {
+          history.past.shift();
+        }
+        history.future = [];
+        syncHistorySize();
+      } else {
+        history.past = history.past.map(patch);
+        history.future = history.future.map(patch);
+      }
       const nextSaved = new Map(saved);
       for (const id of removals) {
         nextSaved.delete(id);
@@ -1492,7 +1502,7 @@ function Editor({
       update(current.nodes, current.edges);
       setLuaRevision((value) => value + 1);
     },
-    [catalog, update],
+    [catalog, update, syncHistorySize],
   );
 
   const appliedRemoteRef = useRef(remoteChange?.revision ?? 0);
@@ -1515,7 +1525,7 @@ function Editor({
       .then(() => api.loadGraph(graph.path))
       .then((document) => {
         if (!cancelled) {
-          mergeRemoteNodes(document.nodes);
+          mergeRemoteNodes(document.nodes, remoteChange.undoable ?? false);
         }
       })
       .catch(() => undefined);

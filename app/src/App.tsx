@@ -10,6 +10,8 @@ import { ProjectShell } from "./screens/ProjectShell";
 import { Welcome } from "./screens/Welcome";
 import { SessionPanel } from "./session/SessionPanel";
 import { useSession } from "./session/useSession";
+import { AppSettings } from "./settings/AppSettings";
+import { useMcp } from "./settings/useMcp";
 import { useUpdateCheck } from "./useUpdateCheck";
 import type { AppInfo, NewProjectOptions, ProjectView, RecentProject } from "./types";
 import { NewProjectWizard } from "./wizard/NewProjectWizard";
@@ -32,6 +34,9 @@ export function App() {
   useUpdateCheck();
   const [sessionOpen, setSessionOpen] = useState(false);
   const toggleSession = useCallback(() => setSessionOpen((open) => !open), []);
+  const mcp = useMcp();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const openSettings = useCallback(() => setSettingsOpen(true), []);
 
   const refreshRecent = useCallback(async () => {
     setRecentProjects(await api.listRecentProjects().catch(() => []));
@@ -160,6 +165,8 @@ export function App() {
           session={session.status}
           sessionOpen={sessionOpen}
           onToggleSession={toggleSession}
+          mcp={mcp}
+          onOpenSettings={openSettings}
           onClose={() => {
             setProject(null);
             void refreshRecent();
@@ -175,8 +182,11 @@ export function App() {
           onRemoveRecent={removeRecent}
           session={session.status}
           onOpenSession={() => setSessionOpen(true)}
+          onOpenSettings={openSettings}
         />
       )}
+
+      {settingsOpen && <AppSettings status={mcp} projectFile={project?.projectFile ?? null} onClose={() => setSettingsOpen(false)} />}
 
       {sessionOpen && <SessionPanel session={session} projectFile={project?.projectFile ?? null} onClose={() => setSessionOpen(false)} />}
 

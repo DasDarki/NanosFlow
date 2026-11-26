@@ -2540,7 +2540,7 @@ dependencies = [
 
 [[package]]
 name = "nanosflow"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "base64 0.22.1",
@@ -2609,7 +2609,7 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
 name = "nf-api"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "serde",
@@ -2619,7 +2619,7 @@ dependencies = [
 
 [[package]]
 name = "nf-compiler"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mlua",
  "nf-api",
@@ -2633,7 +2633,7 @@ dependencies = [
 
 [[package]]
 name = "nf-graph"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "nf-api",
  "nf-project",
@@ -2644,7 +2644,7 @@ dependencies = [
 
 [[package]]
 name = "nf-project"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "nf-api",
  "serde",
@@ -2656,7 +2656,7 @@ dependencies = [
 
 [[package]]
 name = "nf-relay"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "quinn",
@@ -2672,7 +2672,7 @@ dependencies = [
 
 [[package]]
 name = "nf-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "nf-project",
  "serde",
@@ -2681,7 +2681,7 @@ dependencies = [
 
 [[package]]
 name = "nf-session"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "nf-relay",
@@ -2699,7 +2699,7 @@ dependencies = [
 
 [[package]]
 name = "nf-tunnel"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "tokio",
 ]
